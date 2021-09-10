@@ -1,0 +1,184 @@
+<!-- Code injected by Node Simple Server for live reloading. -->
+<style>
+    #NSSWS {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        right: 10px;
+        bottom: 10px;
+        z-index: 9000;
+        width: 80px;
+        height: 45px;
+        border-radius: 25px;
+        background: #000000;
+    }
+    #NSSWS svg {
+        margin-left: 5px;
+        fill: #ffffff;
+    }
+    #NSSWS span {
+        display: inline-block;
+        margin-right: 5px;
+        font-family: monospace;
+        font-size: 22px;
+        color: #ffffff;
+    }
+</style>
+<script type="text/javascript">
+    // <![CDATA[
+    if ("WebSocket" in window) {
+        var NSS_WS = (function () {
+            var disconnected = function () {
+                var icon = '<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M6.817 5.084l-2.057-2.937 1.639-1.147 14.601 20.853-1.638 1.147-1.401-2h-12.461c-3.037 0-5.5-2.463-5.5-5.5 0-2.702 1.951-4.945 4.521-5.408.105-1.965.965-3.73 2.296-5.008zm3.032-1.771c.681-.204 1.403-.313 2.151-.313 4.006 0 7.267 3.141 7.479 7.092 2.57.463 4.521 2.706 4.521 5.408 0 1.898-.962 3.571-2.424 4.56l-1.149-1.64c.947-.627 1.573-1.702 1.573-2.92 0-2.969-2.688-3.766-4.433-3.72.324-3.983-2.114-6.78-5.567-6.78-.317 0-.624.023-.922.068l-1.229-1.755zm-4.349 15.687h11.061l-8.595-12.274c-1.038 1.169-1.618 2.895-1.533 5.054-1.954-.113-4.433.923-4.433 3.72 0 1.93 1.57 3.5 3.5 3.5z"></path></svg>';
+
+                var div = document.createElement("DIV");
+                div.id = "NSSWS";
+                div.innerHTML = '<span id="NSSWS_RETRY">02</span>' + icon;
+
+                if (document.body.firstChild) {
+                    document.body.insertBefore(div, document.body.firstChild);
+                } else {
+                    document.body.appendChild(div);
+                }
+
+                counterInterval = setInterval(function () {
+                    var counter = document.getElementById("NSSWS_RETRY");
+                    var seconds = parseInt(counter.innerHTML) - 1;
+                    if (seconds <= 0) {
+                        seconds = 3000 * restartAttempts * 0.001;
+                    }
+                    if (seconds < 10) {
+                        seconds = "0" + seconds;
+                    }
+                    counter.innerHTML = seconds;
+                }, 1000);
+            };
+
+            var refreshCSS = function () {
+                var sheets = [].slice.call(document.getElementsByTagName("link"));
+                var head = document.getElementsByTagName("head")[0];
+                for (var i = 0; i < sheets.length; ++i) {
+                    var elem = sheets[i];
+                    var parent = elem.parentElement || head;
+                    parent.removeChild(elem);
+                    var rel = elem.rel;
+                    if ((elem.href && typeof rel != "string") || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+                        var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, "");
+                        var newUrl = url + (url.indexOf("?") >= 0 ? "&" : "?");
+                        newUrl += "_cacheOverride=" + new Date().valueOf();
+                        elem.href = newUrl;
+                    }
+                    parent.appendChild(elem);
+                }
+            };
+
+            var registerCallback = function (func) {
+                if (typeof func === "function") {
+                    callbacks.push(func);
+                }
+            };
+
+            var restart = function () {
+                var http = new XMLHttpRequest();
+                http.onerror = function (e) {
+                    // Ignore the error in browsers that respect that.
+                };
+                http.onreadystatechange = function () {
+                    if (http.readyState === 4) {
+                        if (http.status >= 200 && http.status < 400) {
+                            window.location.reload();
+                        }
+                    }
+                };
+                http.open("GET", window.location.href);
+                http.send();
+
+                if (autoRestart) {
+                    if (restartAttempts < 10) {
+                        restartAttempts += 1;
+                    }
+                    clearInterval(restartInterval);
+                    restartInterval = setInterval(restart, 3000 * restartAttempts);
+                }
+            };
+
+            var send = function (message) {
+                if (ready && socket.readyState === WebSocket.OPEN) {
+                    socket.send(message);
+                    return;
+                }
+                console.warn("Node Simple Server: The WebSocket is not ready or the connection was closed.");
+            };
+
+            var unregisterCallback = function (func) {
+                for (var i = 0; i < callbacks.length; i++) {
+                    if (callbacks[i] == func) {
+                        callbacks.splice(i, 1);
+                    }
+                }
+            };
+
+            var autoRestart = true;
+            var restartAttempts = 0;
+            var restartInterval = null;
+            var counterInterval = null;
+            var callbacks = [];
+            var protocol = window.location.protocol === "http:" ? "ws://" : "wss://";
+            var address = protocol + window.location.host + window.location.pathname + "/ws";
+            var socket = new WebSocket(address);
+            var ready = false;
+
+            socket.onmessage = function (event) {
+                switch (event.data) {
+                    case "close":
+                        ready = false;
+                        break;
+                    case "disableAutoRestart":
+                        autoRestart = false;
+                        clearInterval(restartInterval);
+                        clearInterval(counterInterval);
+                        console.log("Node Simple Server: Auto restart disabled, manually refresh page if server disconnects.");
+                        break;
+                    case "refreshCSS":
+                        refreshCSS();
+                        break;
+                    case "reload":
+                        window.location.reload();
+                        break;
+                    default:
+                        if (callbacks.length > 0) {
+                            for (var i = 0; i < callbacks.length; i++) {
+                                callbacks[i](event.data);
+                            }
+                        } else {
+                            console.log(`Received from WebSocket: ${event.data}`);
+                        }
+                }
+            };
+
+            socket.addEventListener("close", function () {
+                ready = false;
+                console.warn("Node Simple Server: Connection closed, live reload disabled.");
+                if (autoRestart) {
+                    disconnected();
+                    restartInterval = setInterval(restart, 3000);
+                }
+            });
+
+            socket.addEventListener("open", function () {
+                console.log("Node Simple Server: Live reload enabled.");
+                ready = true;
+            });
+
+            return {
+                registerCallback: registerCallback,
+                send: send,
+                unregisterCallback: unregisterCallback,
+            };
+        })();
+    } else {
+        console.error("Node Simple Server: This Browser does NOT support WebSocket for live reloading.");
+    }
+    // ]]>
+</script>

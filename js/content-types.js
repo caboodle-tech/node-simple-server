@@ -1,0 +1,57 @@
+/*
+ * Default Content-Types that NSS will use for HTTP headers. NSS doesn't handle serving
+ * all of these different Content-Types but it will do its best to let the browser know
+ * what content its serving, its up to your browser to do the rest of the work.
+ */
+const contentTypes = {
+    '.aac': 'audio/aac',
+    '.avi': 'video/x-msvideo',
+    '.bmp': 'image/bmp',
+    '.css': 'text/css',
+    '.csv': 'text/csv',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.epub': 'application/epub+zip',
+    '.gif': 'image/gif',
+    '.gz': 'application/gzip',
+    '.html': 'text/html',
+    '.ico': 'image/x-icon',
+    '.jpeg': 'image/jpeg',
+    '.jpg': 'image/jpeg',
+    '.js': 'text/javascript',
+    '.json': 'application/json',
+    '.jsonld': 'application/ld+json',
+    '.mid': 'audio/midi',
+    '.midi': 'audio/x-midi',
+    '.mjs': 'text/javascript',
+    '.mp3': 'audio/mpeg',
+    '.mp4': 'video/mp4',
+    '.mpeg': 'video/mpeg',
+    '.odp': 'application/vnd.oasis.opendocument.presentation',
+    '.ods': 'application/vnd.oasis.opendocument.spreadsheet',
+    '.odt': 'application/vnd.oasis.opendocument.text',
+    '.oga': 'audio/ogg',
+    '.ogv': 'video/ogg',
+    '.pdf': 'application/pdf',
+    '.png': 'image/png',
+    '.ppt': 'application/vnd.ms-powerpoint',
+    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    '.svg': 'image/svg+xml',
+    '.tar': 'application/x-tar',
+    '.tif': 'image/tiff',
+    '.tiff': 'image/tiff',
+    '.ts': 'video/mp2t',
+    '.txt': 'text/plain',
+    '.vsd': 'application/vnd.visio',
+    '.wav': 'audio/wav',
+    '.weba': 'audio/webm',
+    '.webm': 'video/webm',
+    '.webp': 'image/webp',
+    '.xhtml': 'application/xhtml+xml',
+    '.xls': 'application/vnd.ms-excel',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.xml': 'text/xml',
+    '.zip': 'application/zip'
+};
+
+module.exports = contentTypes;

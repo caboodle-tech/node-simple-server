@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- This is NSS's directory listing page. -->
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Directory Listing</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                padding: 15px;
+            }
+            a {
+                color: #008fcc;
+                text-decoration: none;
+                cursor: pointer;
+            }
+            .row {
+                display: flex;
+                flex-direction: column;
+            }
+            .row .col {
+                flex: 1;
+                margin-bottom: 15px;
+            }
+            .row .title {
+                font-size: 26px;
+                line-height: 26px;
+            }
+            .row .icon {
+                margin: 0 15px -2px 0;
+            }
+            .row ul {
+                list-style-type: none;
+                margin: 0;
+                padding: 10px 0 0 0;
+            }
+            .row ul li {
+                padding: 5px 15px;
+            }
+            .row ul li a {
+                display: block;
+                font-size: 20px;
+            }
+            @media (min-width: 768px) {
+                .row {
+                    flex-direction: row;
+                }
+                .row .col:nth-of-type(odd) {
+                    margin-right: 10px;
+                }
+                .row .col:nth-of-type(even) {
+                    margin-left: 10px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="row">
+            <div class="col">
+                <h1>Listing ${path}</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <svg class="icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
+                    <path d="M22 24h-20v-24h14l6 6v18zm-7-23h-12v22h18v-16h-6v-6zm3 15v1h-12v-1h12zm0-3v1h-12v-1h12zm0-3v1h-12v-1h12zm-2-4h4.586l-4.586-4.586v4.586z" />
+                </svg>
+                <span class="title">Files</span>
+                <ul>
+                    ${files}
+                </ul>
+            </div>
+            <div class="col">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                    <path d="M6.083 4c1.38 1.612 2.578 3 4.917 3h11v13h-20v-16h4.083zm.917-2h-7v20h24v-17h-13c-1.629 0-2.305-1.058-4-3z" />
+                </svg>
+                <span class="title">Directories</span>
+                <ul>
+                    ${directories}
+                </ul>
+            </div>
+        </div>
+    </body>
+</html>

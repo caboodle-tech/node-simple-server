@@ -1,0 +1,41 @@
+{
+  "name": "@caboodle-tech/nss",
+  "version": "1.0.0",
+  "description": "Node Simple Server (NSS): A simple but effective node based server for development sites and self controlled live reloading.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caboodle-tech/nss.git"
+  },
+  "keywords": [
+    "Node",
+    "Simple",
+    "Server",
+    "Live",
+    "Reloading",
+    "Callback",
+    "Functions",
+    "WebSocket"
+  ],
+  "author": "Christopher Keers <source[at]caboodle.tech>",
+  "contributors": [
+    "Caboodle Tech Inc (https://github.com/caboodle-tech)"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/caboodle-tech/nss/issues"
+  },
+  "homepage": "https://github.com/caboodle-tech/nss#readme",
+  "dependencies": {
+    "ws": "^8.2.2"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-import": "^2.24.2"
+  }
+}
