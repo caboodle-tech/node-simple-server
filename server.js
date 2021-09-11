@@ -310,7 +310,7 @@ function NodeSimpleServer(options) {
         }
 
         // If accessing a directory that has an OP.indexPage route users to that page instead.
-        if (FS.lstatSync(safeURL).isDirectory()) {
+        if (FS.existsSync(safeURL) && FS.lstatSync(safeURL).isDirectory()) {
             const index = Path.join(safeURL, OP.indexPage);
             if (FS.existsSync(index)) {
                 safeURL = index;
@@ -402,8 +402,17 @@ function NodeSimpleServer(options) {
      */
     const socketListener = function (socket, request) {
 
+        // Strip the page ID off the url and get the correct url.
+        let url = request.url.substr(0, request.url.indexOf('?id='));
+        if (url === '//ws') {
+            url = `/${OP.indexPage}/ws`;
+        }
+
+        // Record the unique page ID directly on the socket object.
+        const pageID = request.url.substr(request.url.indexOf('?id=')).replace('?id=', '');
+        socket.nssUID = pageID;
+
         // Record new socket connections.
-        const url = request.url;
         if (CONNECTIONS[url]) {
             CONNECTIONS[url].push(socket); // This page has opened multiple times.
         } else {
@@ -427,6 +436,18 @@ function NodeSimpleServer(options) {
             // No one is listening for this message.
             const cleanURL = url.substr(0, url.lastIndexOf('/ws'));
             console.log(`Unanswered WebSocket message from ${cleanURL}: ${message.toString()}`);
+        });
+
+        // When a connection closes remove it from CONNECTIONS.
+        socket.on('close', () => {
+            // Remove this page from our list of active connections.
+            const connections = CONNECTIONS[url];
+            for (let i = 0; i < connections.length; i++) {
+                if (connections[i].nssUID === pageID) {
+                    connections.splice(i, 1);
+                    break;
+                }
+            }
         });
 
     };

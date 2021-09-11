@@ -111,6 +111,10 @@
                 console.warn("Node Simple Server: The WebSocket is not ready or the connection was closed.");
             };
 
+            var uid = function () {
+                return Math.random().toString(16).slice(2);
+            };
+
             var unregisterCallback = function (func) {
                 for (var i = 0; i < callbacks.length; i++) {
                     if (callbacks[i] == func) {
@@ -125,7 +129,7 @@
             var counterInterval = null;
             var callbacks = [];
             var protocol = window.location.protocol === "http:" ? "ws://" : "wss://";
-            var address = protocol + window.location.host + window.location.pathname + "/ws";
+            var address = protocol + window.location.host + window.location.pathname + "/ws?id=" + uid();
             var socket = new WebSocket(address);
             var ready = false;
 
