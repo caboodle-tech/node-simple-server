@@ -21,7 +21,7 @@ function NodeSimpleServer(options) {
     /* NSS global variables. */
     const CONNECTIONS = {};
     const OP = {
-        callbacks: {},
+        callbacks: [],
         contentType: 'text/html',
         dirListing: false,
         indexPage: 'index.html',
@@ -33,25 +33,6 @@ function NodeSimpleServer(options) {
     let SERVER = null;
     let SOCKET = null;
     const VERSION = '0.1.0-rc'; // Update on releases.
-
-    /**
-     * NSS relies on a set pattern for URLs to make comparing them easy.
-     *
-     * @param {String} url The url to convert into the expected format.
-     * @return {String} A url that has been formatted to work with NSS.
-     */
-    const correctURL = function (url) {
-        // Make sure we have a URL and it starts correctly.
-        url = url || '/';
-        if (url[0] !== '/') {
-            url = `/${url}`;
-        }
-        // Make sure the URL ends correctly.
-        if (url.substr(-3) !== '/ws') {
-            url += '/ws';
-        }
-        return url;
-    };
 
     /**
      * Get the contents of a directory for displaying in the directory listing page.
@@ -215,6 +196,24 @@ function NodeSimpleServer(options) {
     };
 
     /**
+     * Converts a regular expression (regex) string into an actual RegExp object.
+     *
+     * @param {String} pattern A string of test or a regex expressed as a string; don't forget to
+     *                         escape characters that should be interpreted literally.
+     * @return {RegExp|null} A RegExp object if the string could be converted, null otherwise.
+     */
+    const makeRegex = function (pattern) {
+        try {
+            if (/\[|\]|\(|\)|\*|\$|\^/.test(pattern)) {
+                return new RegExp(pattern);
+            }
+            return new RegExp(`^${pattern}$`);
+        } catch (e) {
+            return null;
+        }
+    };
+
+    /**
      * Message a font-end page via the WebSocket connection if the page is currently connected.
      *
      * @param {String} url The page to message using its URL minus the domain name and port number.
@@ -222,7 +221,11 @@ function NodeSimpleServer(options) {
      * @return {Boolean} True if the page is connected and the message was sent, false otherwise.
      */
     const message = function (url, msg) {
-        url = correctURL(url);
+        // Correct the URL format if needed.
+        url = url || OP.indexPage;
+        if (url[0] === '/') {
+            url = url.substr(1);
+        }
         // Attempt to find the requested page and message it.
         const keys = Object.keys(CONNECTIONS);
         for (let i = 0; i < keys.length; i++) {
@@ -241,19 +244,16 @@ function NodeSimpleServer(options) {
      * allow you to have two way communications with a page as long as you registered
      * a function on the front-end as well.
      *
-     * @param {String} url The page to listen for using its URL; do not include the
-     *                     domain name and port number.
+     * @param {String} pattern A regular expression (regex) string that represents the pattern of
+     *                         url that should be sent to this callback. If you are providing a
+     *                         plain URL to a page do not include the domain name or port number.
      * @param {Function} callback The function to call if this page (url) messages.
      * @return {Boolean} True is the function was registered, false otherwise.
      */
-    const registerCallback = function (url, callback) {
-        if (typeof callback === 'function') {
-            url = correctURL(url);
-            if (OP.callbacks[url]) {
-                OP.callbacks[url].push(callback);
-            } else {
-                OP.callbacks[url] = [callback];
-            }
+    const registerCallback = function (pattern, callback) {
+        const regex = makeRegex(pattern);
+        if (regex !== null && typeof callback === 'function') {
+            OP.callbacks.push([regex, callback]);
             return true;
         }
         return false;
@@ -402,10 +402,10 @@ function NodeSimpleServer(options) {
      */
     const socketListener = function (socket, request) {
 
-        // Strip the page ID off the url and get the correct url.
-        let url = request.url.substr(0, request.url.indexOf('?id='));
-        if (url === '//ws') {
-            url = `/${OP.indexPage}/ws`;
+        // Strip the page ID and /ws tag off the url to get the actual url.
+        let cleanURL = request.url.substr(1, request.url.indexOf('/ws?id=') - 1);
+        if (!cleanURL) {
+            cleanURL = OP.indexPage;
         }
 
         // Record the unique page ID directly on the socket object.
@@ -413,10 +413,10 @@ function NodeSimpleServer(options) {
         socket.nssUID = pageID;
 
         // Record new socket connections.
-        if (CONNECTIONS[url]) {
-            CONNECTIONS[url].push(socket); // This page has opened multiple times.
+        if (CONNECTIONS[cleanURL]) {
+            CONNECTIONS[cleanURL].push(socket); // This page has opened multiple times.
         } else {
-            CONNECTIONS[url] = [socket]; // Fist time we've seen this page.
+            CONNECTIONS[cleanURL] = [socket]; // Fist time we've seen this page.
         }
 
         // If auto restart is supposed to be disabled tell the page now.
@@ -427,21 +427,22 @@ function NodeSimpleServer(options) {
         // Handle future incoming WebSocket messages from this page.
         socket.on('message', (message) => {
             // See if the message belongs to a callback and send it there.
-            if (OP.callbacks[url]) {
-                OP.callbacks[url].forEach((callback) => {
-                    callback(message);
-                });
-                return;
+            for (let i = 0; i < OP.callbacks.length; i++) {
+                const regex = OP.callbacks[i][0];
+                const callback = OP.callbacks[i][1];
+                if (regex.test(cleanURL)) {
+                    callback(message.toString());
+                    return;
+                }
             }
             // No one is listening for this message.
-            const cleanURL = url.substr(0, url.lastIndexOf('/ws'));
             console.log(`Unanswered WebSocket message from ${cleanURL}: ${message.toString()}`);
         });
 
         // When a connection closes remove it from CONNECTIONS.
         socket.on('close', () => {
             // Remove this page from our list of active connections.
-            const connections = CONNECTIONS[url];
+            const connections = CONNECTIONS[cleanURL];
             for (let i = 0; i < connections.length; i++) {
                 if (connections[i].nssUID === pageID) {
                     connections.splice(i, 1);
@@ -551,24 +552,27 @@ function NodeSimpleServer(options) {
     /**
      * Unregister a back-end function that was set with registerCallback.
      *
-     * @param {String} url The page that was being listened for using its URL; do not include the
-     *                     domain name and port number.
+     * @param {String} pattern The same regular expression (regex) string that was used when
+     *                         the callback function was first registered.
      * @param {Function} callback The function that was originally registered as the callback.
      * @return {Boolean} True is the function was unregistered, false otherwise.
      */
-    const unregisterCallback = function (url, func) {
-        url = correctURL(url);
-        const keys = Object.keys(OP.callbacks);
-        for (let i = 0; i < keys.length; i++) {
-            if (keys[i] === url) {
-                const callbacks = OP.callbacks[keys[i]];
-                for (let c = 0; c < callbacks.length; c++) {
-                    if (callbacks[c] === func) {
-                        callbacks.splice(c, 1);
-                        return true;
-                    }
-                }
-                break;
+    const unregisterCallback = function (pattern, func) {
+        // Make sure the pattern is not null.
+        let oldRegex = makeRegex(pattern);
+        if (!oldRegex) {
+            return false;
+        }
+        // Convert the regex to a string otherwise comparing will never work.
+        oldRegex = oldRegex.toString();
+        // Remove the pattern and callback from the registered callbacks if they exits.
+        for (let i = 0; i < OP.callbacks.length; i++) {
+            const regex = OP.callbacks[i][0].toString();
+            const callback = OP.callbacks[i][1];
+            if (regex === oldRegex && callback === func) {
+                OP.callbacks.splice(i, 1);
+                console.log(OP.callbacks);
+                return true;
             }
         }
         return false;
