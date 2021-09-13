@@ -219,27 +219,34 @@ function NodeSimpleServer(options) {
     /**
      * Message a font-end page via the WebSocket connection if the page is currently connected.
      *
-     * @param {String} url The page to message using its URL minus the domain name and port number.
+     * @param {String} pattern A RegExp object to check the page URL's against, a string
+     *                         representing a regular expression to check the page URL's against,
+     *                         or a font-end pages ID.
      * @param {String|*} msg The message you would like to send, usually a stringified JSON object.
      * @return {Boolean} True if the page is connected and the message was sent, false otherwise.
      */
-    const message = function (url, msg) {
-        // Correct the URL format if needed.
-        url = url || OP.indexPage;
-        if (url[0] === '/') {
-            url = url.substr(1);
-        }
+    const message = function (pattern, msg) {
+        const original = pattern.toString();
+        const regex = makeRegex(pattern);
+        let result = false;
         // Attempt to find the requested page and message it.
         const keys = Object.keys(CONNECTIONS);
         for (let i = 0; i < keys.length; i++) {
-            if (url === keys[i]) {
+            if (regex != null) {
+                if (regex.test(keys[i])) {
+                    CONNECTIONS[keys[i]].forEach((socket) => {
+                        socket.send(msg);
+                    });
+                    result = true;
+                }
+            } else if (original === keys[i]) {
                 CONNECTIONS[keys[i]].forEach((socket) => {
                     socket.send(msg);
                 });
-                return true;
+                result = true;
             }
         }
-        return false;
+        return result;
     };
 
     /**
@@ -248,8 +255,7 @@ function NodeSimpleServer(options) {
      * a function on the front-end as well.
      *
      * @param {String} pattern A RegExp object to check the page URL's against or a string
-*                              representing a regular expression to check the page URL's
-*                              against.
+     *                         representing a regular expression to check the page URL's against.
      * @param {Function} callback The function to call if this page (url) messages.
      * @return {Boolean} True is the function was registered, false otherwise.
      */
@@ -521,6 +527,7 @@ function NodeSimpleServer(options) {
 
         // When a connection closes remove it from CONNECTIONS.
         socket.on('close', () => {
+            console.log('CLOSING');
             // Remove this page from our list of active connections.
             const connections = CONNECTIONS[cleanURL];
             for (let i = 0; i < connections.length; i++) {
