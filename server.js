@@ -204,8 +204,11 @@ function NodeSimpleServer(options) {
      */
     const makeRegex = function (pattern) {
         try {
-            if (/\[|\]|\(|\)|\*|\$|\^/.test(pattern)) {
+            if (/\[|\]|\(|\)|\{|\}|\*|\$|\^/.test(pattern)) {
                 return new RegExp(pattern);
+            }
+            if (pattern[0] === '/' && pattern[pattern.length - 1] === '/') {
+                pattern = pattern.substr(1, pattern.length - 2);
             }
             return new RegExp(`^${pattern}$`);
         } catch (e) {
@@ -216,27 +219,34 @@ function NodeSimpleServer(options) {
     /**
      * Message a font-end page via the WebSocket connection if the page is currently connected.
      *
-     * @param {String} url The page to message using its URL minus the domain name and port number.
+     * @param {String} pattern A RegExp object to check the page URL's against, a string
+     *                         representing a regular expression to check the page URL's against,
+     *                         or a font-end pages ID.
      * @param {String|*} msg The message you would like to send, usually a stringified JSON object.
      * @return {Boolean} True if the page is connected and the message was sent, false otherwise.
      */
-    const message = function (url, msg) {
-        // Correct the URL format if needed.
-        url = url || OP.indexPage;
-        if (url[0] === '/') {
-            url = url.substr(1);
-        }
+    const message = function (pattern, msg) {
+        const original = pattern.toString();
+        const regex = makeRegex(pattern);
+        let result = false;
         // Attempt to find the requested page and message it.
         const keys = Object.keys(CONNECTIONS);
         for (let i = 0; i < keys.length; i++) {
-            if (url === keys[i]) {
+            if (regex != null) {
+                if (regex.test(keys[i])) {
+                    CONNECTIONS[keys[i]].forEach((socket) => {
+                        socket.send(msg);
+                    });
+                    result = true;
+                }
+            } else if (original === keys[i]) {
                 CONNECTIONS[keys[i]].forEach((socket) => {
                     socket.send(msg);
                 });
-                return true;
+                result = true;
             }
         }
-        return false;
+        return result;
     };
 
     /**
@@ -244,9 +254,8 @@ function NodeSimpleServer(options) {
      * allow you to have two way communications with a page as long as you registered
      * a function on the front-end as well.
      *
-     * @param {String} pattern A regular expression (regex) string that represents the pattern of
-     *                         url that should be sent to this callback. If you are providing a
-     *                         plain URL to a page do not include the domain name or port number.
+     * @param {String} pattern A RegExp object to check the page URL's against or a string
+     *                         representing a regular expression to check the page URL's against.
      * @param {Function} callback The function to call if this page (url) messages.
      * @return {Boolean} True is the function was registered, false otherwise.
      */
@@ -273,6 +282,44 @@ function NodeSimpleServer(options) {
     };
 
     /**
+     * Reload a single page or single group of font-end pages matching a specified pattern.
+     *
+     * @param {RegExp|String} pattern A RegExp object to check the page URL's against, a string
+     *                                representing a regular expression to check the page URL's
+     *                                against, or a string representing the pages front-end ID.
+     * @return {null} Used only as a short circuit.
+     */
+    const reloadSinglePage = function (pattern) {
+        const original = pattern.toString();
+        if (whatIs(pattern) !== 'regexp') {
+            pattern = makeRegex(pattern);
+        }
+        // See if the pattern matches a specific URL and reload all those pages.
+        const keys = Object.keys(CONNECTIONS);
+        if (pattern != null) {
+            for (let i = 0; i < keys.length; i++) {
+                if (pattern.test(keys[i])) {
+                    CONNECTIONS[keys[i]].forEach((socket) => {
+                        socket.send('reload');
+                    });
+                    return;
+                }
+            }
+        }
+        // See if the pattern was a particular page ID.
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            for (let s = 0; s < CONNECTIONS[key].length; s++) {
+                const socket = CONNECTIONS[key][s];
+                if (socket.nssUID === original) {
+                    socket.send('reload');
+                    return;
+                }
+            }
+        }
+    };
+
+    /**
      * Send the refreshCSS message to all connected pages; this reloads on the CSS
      * and not the whole page.
      */
@@ -284,6 +331,45 @@ function NodeSimpleServer(options) {
                 socket.send('refreshCSS');
             });
         });
+    };
+
+    /**
+     * Reload the stylesheets for a single page or single group of pages matching a
+     * specified pattern.
+     *
+     * @param {RegExp|String} pattern A RegExp object to check the page URL's against, a string
+     *                                representing a regular expression to check the page URL's
+     *                                against, or a string representing the pages front-end ID.
+     * @return {null} Used only as a short circuit.
+     */
+    const reloadSingleStyles = function (pattern) {
+        const original = pattern.toString();
+        if (whatIs(pattern) !== 'regexp') {
+            pattern = makeRegex(pattern) || original;
+        }
+        // See if the pattern matches a specific URL and reload all those pages.
+        const keys = Object.keys(CONNECTIONS);
+        if (pattern != null) {
+            for (let i = 0; i < keys.length; i++) {
+                if (pattern.test(keys[i])) {
+                    CONNECTIONS[keys[i]].forEach((socket) => {
+                        socket.send('refreshCSS');
+                    });
+                    return;
+                }
+            }
+        }
+        // See if the pattern was a particular page ID.
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            for (let s = 0; s < CONNECTIONS[key].length; s++) {
+                const socket = CONNECTIONS[key][s];
+                if (socket.nssUID === original) {
+                    socket.send('refreshCSS');
+                    return;
+                }
+            }
+        }
     };
 
     /**
@@ -431,7 +517,7 @@ function NodeSimpleServer(options) {
                 const regex = OP.callbacks[i][0];
                 const callback = OP.callbacks[i][1];
                 if (regex.test(cleanURL)) {
-                    callback(message.toString());
+                    callback(message.toString(), pageID);
                     return;
                 }
             }
@@ -441,6 +527,7 @@ function NodeSimpleServer(options) {
 
         // When a connection closes remove it from CONNECTIONS.
         socket.on('close', () => {
+            console.log('CLOSING');
             // Remove this page from our list of active connections.
             const connections = CONNECTIONS[cleanURL];
             for (let i = 0; i < connections.length; i++) {
@@ -552,8 +639,8 @@ function NodeSimpleServer(options) {
     /**
      * Unregister a back-end function that was set with registerCallback.
      *
-     * @param {String} pattern The same regular expression (regex) string that was used when
-     *                         the callback function was first registered.
+     * @param {String} pattern The same regular expression (regex) object or string that was
+     *                         used when the callback function was first registered.
      * @param {Function} callback The function that was originally registered as the callback.
      * @return {Boolean} True is the function was unregistered, false otherwise.
      */
@@ -578,6 +665,18 @@ function NodeSimpleServer(options) {
         return false;
     };
 
+    /**
+     * The fastest way to get the actual type of anything in JavaScript; {@link https://jsbench.me/ruks9jljcu/2| Benchmarks}.
+     *
+     * @param {*} unknown Anything you wish to check the type of.
+     * @return {String|undefined} The type of the unknown value passed in or undefined.
+     */
+    const whatIs = function (unknown) {
+        try {
+            return ({}).toString.call(unknown).match(/\s([^\]]+)/)[1].toLowerCase();
+        } catch (e) { return undefined; }
+    };
+
     // Configure the new instance of NSS.
     initialize(options);
 
@@ -586,7 +685,9 @@ function NodeSimpleServer(options) {
         message,
         registerCallback,
         reloadPages,
+        reloadSinglePage,
         reloadStyles,
+        reloadSingleStyles,
         start,
         stop,
         unregisterCallback
