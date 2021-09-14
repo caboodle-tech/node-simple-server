@@ -649,7 +649,7 @@ function NodeSimpleServer(options) {
      * @param {Function} callback The function that was originally registered as the callback.
      * @return {Boolean} True is the function was unregistered, false otherwise.
      */
-    const unregisterCallback = function (pattern, func) {
+    const unregisterCallback = function (pattern, callback) {
         // Make sure the pattern is not null.
         let oldRegex = makeRegex(pattern);
         if (!oldRegex) {
@@ -660,10 +660,9 @@ function NodeSimpleServer(options) {
         // Remove the pattern and callback from the registered callbacks if they exits.
         for (let i = 0; i < OP.callbacks.length; i++) {
             const regex = OP.callbacks[i][0].toString();
-            const callback = OP.callbacks[i][1];
-            if (regex === oldRegex && callback === func) {
+            const func = OP.callbacks[i][1];
+            if (regex === oldRegex && func === callback) {
                 OP.callbacks.splice(i, 1);
-                console.log(OP.callbacks);
                 return true;
             }
         }
@@ -691,8 +690,8 @@ function NodeSimpleServer(options) {
         registerCallback,
         reloadPages,
         reloadSinglePage,
-        reloadStyles,
         reloadSingleStyles,
+        reloadStyles,
         start,
         stop,
         unregisterCallback
