@@ -2,11 +2,11 @@
 
 Node Simple Server (NSS) is a small but effective node based server for development sites and self controlled live reloading. You should consider using NSS if:
 
-:heavy_check_mark: You want to add live reloading to the development process of a static site.
+:heavy_check_mark:&nbsp; You want to add live reloading to the development process of a static site.
 
-:heavy_check_mark: You want easy two-way communication from the back-end and front-end of your development site; WebSockets managed for you.
+:heavy_check_mark:&nbsp; You want easy two-way communication from the back-end and front-end of your development site; WebSockets managed for you.
 
-:heavy_check_mark: You want more fine grained control over the whole live reloading process.
+:heavy_check_mark:&nbsp; You want more fine grained control over the whole live reloading process.
 
 ## Installation
 
@@ -23,8 +23,7 @@ const NSS = require("./nss/server");
 You can install and use NSS locally in a project with:
 
 ```bash
-// PENDING NOT AVAILABLE YET!
-npm install nss --save-dev
+npm install @caboodle-tech/nss --save-dev
 ```
 
 ### Globally:
@@ -32,8 +31,7 @@ npm install nss --save-dev
 You can install and use NSS globally with:
 
 ```bash
-// PENDING NOT AVAILABLE YET!
-npm install --global nss
+npm install --global @caboodle-tech/nss
 ```
 
 ## Usage
