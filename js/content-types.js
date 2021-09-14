@@ -1,7 +1,7 @@
 /*
  * Default Content-Types that NSS will use for HTTP headers. NSS doesn't handle serving
  * all of these different Content-Types but it will do its best to let the browser know
- * what content its serving, its up to your browser to do the rest of the work.
+ * what content its serving, its up to the browser to do the rest of the work.
  */
 const contentTypes = {
     '.aac': 'audio/aac',

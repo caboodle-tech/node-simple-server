@@ -198,7 +198,7 @@ function NodeSimpleServer(options) {
     /**
      * Converts a regular expression (regex) string into an actual RegExp object.
      *
-     * @param {String} pattern A string of test or a regex expressed as a string; don't forget to
+     * @param {String} pattern A string of text or a regex expressed as a string; don't forget to
      *                         escape characters that should be interpreted literally.
      * @return {RegExp|null} A RegExp object if the string could be converted, null otherwise.
      */
@@ -320,7 +320,7 @@ function NodeSimpleServer(options) {
     };
 
     /**
-     * Send the refreshCSS message to all connected pages; this reloads on the CSS
+     * Send the refreshCSS message to all connected pages; this reloads only the CSS
      * and not the whole page.
      */
     const reloadStyles = function () {
@@ -527,7 +527,6 @@ function NodeSimpleServer(options) {
 
         // When a connection closes remove it from CONNECTIONS.
         socket.on('close', () => {
-            console.log('CLOSING');
             // Remove this page from our list of active connections.
             const connections = CONNECTIONS[cleanURL];
             for (let i = 0; i < connections.length; i++) {
@@ -579,6 +578,11 @@ function NodeSimpleServer(options) {
             // The port we tried to use is taken, increment and try to start again.
             if (error.code === 'EADDRINUSE') {
                 if (port) {
+                    // Stop trying new ports after 100 attempts.
+                    if (OP.port - port > 100) {
+                        console.log(`FATAL ERROR: Could not find an available port number in the range of ${OP.port}–${OP.port + 100}.`);
+                        return;
+                    }
                     start(port + 1);
                 } else {
                     start(OP.port + 1);
@@ -618,7 +622,7 @@ function NodeSimpleServer(options) {
      */
     const stop = function () {
         if (OP.running) {
-            // Close all socket connections; these will keep the server up.
+            // Close all socket connections; these would force the server to stay up.
             const keys = Object.keys(CONNECTIONS);
             keys.forEach((key) => {
                 CONNECTIONS[key].forEach((socket) => {
@@ -632,6 +636,7 @@ function NodeSimpleServer(options) {
             // Reset NSS.
             SERVER = null;
             SOCKET = null;
+            OP.running = false;
         }
         console.log('Server has been stopped.');
     };
