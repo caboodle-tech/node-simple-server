@@ -1,6 +1,6 @@
 {
     "name": "@caboodle-tech/nss",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Node Simple Server (NSS): A small but effective node based server for development sites and self controlled live reloading.",
     "main": "server.js",
     "scripts": {
