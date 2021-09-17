@@ -222,7 +222,7 @@ With your new instance of NSS you can call any of the following public methods:
 
 -   Start watching a file, files, directory, or directories for changes and then callback to functions that can/ will respond to these changes.
 
-#### **watchEnd(..)**
+#### **watchEnd()**
 
 -   Stop watching registered file, files, directory, or directories for changes.
 
@@ -230,7 +230,7 @@ With your new instance of NSS you can call any of the following public methods:
 
 **^** `pattern` refers to either a `RegExp` object or a string of text that represents a regular expression without surrounding slashes (/) or modifiers (g, i, etc.). If you provide a string make sure to correctly escape literal characters. In some instances `pattern` can also be a string of text representing a page's unique ID. `pattern` does not recognize glob patterns!
 
-**^^** `paths` refers either to a string or array of strings. Paths to files, directories to be watched recursively, or glob patterns. Globs must not contain windows separators (\\), because that's how they work by the standard — you'll need to replace them with forward slashes (/). For additional glob documentation, check out low-level library: picomatch.
+**^^** `paths` refers either to a string or array of strings. Paths to files, directories to be watched recursively, or glob patterns. Globs must not contain windows separators (\\), because that's how they work by the standard — you'll need to replace them with forward slashes (/). For additional glob documentation, check out low-level library: [picomatch](https://github.com/micromatch/picomatch).
 
 ## Changelog
 

@@ -725,6 +725,13 @@ function NodeSimpleServer(options) {
         if (!options || !options.events) {
             return false;
         }
+        /*
+         * For security and a better user experience set the watchers current working
+         * directory to NSS's root if the setting is missing.
+         */
+        if (!options.cwd) {
+            options.cwd = OP.root;
+        }
         // Convert paths to array if it's not already.
         if (whatIs(paths) === 'string') {
             paths = [paths];
@@ -733,7 +740,7 @@ function NodeSimpleServer(options) {
             // Start watching the path(s).
             const watcher = Chokidar.watch(paths, options);
             WATCHING.push(watcher);
-            // Hookup listeners as requested.
+            // Hookup requested listeners; they are case sensitive so type them right in your code!
             const safe = ['all', 'add', 'addDir', 'change', 'unlink', 'unlinkDir', 'ready', 'raw', 'error'];
             Object.keys(options.events).forEach((key) => {
                 if (safe.includes(key)) {
