@@ -2,6 +2,7 @@
 /* eslint-disable func-names */
 /* eslint-disable no-shadow */
 
+const Chokidar = require('chokidar');
 const FS = require('fs');
 const Http = require('http');
 const OS = require('os');
@@ -33,6 +34,7 @@ function NodeSimpleServer(options) {
     let SERVER = null;
     let SOCKET = null;
     const VERSION = '0.1.0-rc'; // Update on releases.
+    const WATCHING = [];
 
     /**
      * Get the contents of a directory for displaying in the directory listing page.
@@ -166,6 +168,20 @@ function NodeSimpleServer(options) {
         };
         // Combine the headers and return the header object.
         return Object.assign(headers, nssHeaders);
+    };
+
+    /**
+     * Returns an array of watcher objects showing you which directories and files are
+     * actively being watched for changes.
+     *
+     * @return {Array} An array of watcher objects; 1 object per call to watch().
+     */
+    const getWatched = function () {
+        const watched = [];
+        WATCHING.forEach((watcher) => {
+            watched.push(watcher.getWatched());
+        });
+        return watched;
     };
 
     /**
@@ -543,7 +559,7 @@ function NodeSimpleServer(options) {
      * Attempt to start the HTTP server and WebSocket listener.
      *
      * @param {Int|null} port Allows force overriding of port number; you should usually not use
-*                            this, it's meant to be used internally to NSS.
+     *                        this, it's meant to be used internally to NSS.
      * @return {null} Used only as a short circuit.
      */
     const start = function (port) {
@@ -622,6 +638,8 @@ function NodeSimpleServer(options) {
      */
     const stop = function () {
         if (OP.running) {
+            // If any back-end files are being watched for changes stop monitoring them.
+            watchEnd();
             // Close all socket connections; these would force the server to stay up.
             const keys = Object.keys(CONNECTIONS);
             keys.forEach((key) => {
@@ -639,6 +657,28 @@ function NodeSimpleServer(options) {
             OP.running = false;
         }
         console.log('Server has been stopped.');
+    };
+
+    /**
+     * Stop watching directories or files for changes; previously registered with watch().
+     *
+     * Warning: If you watched a directory for changes watch() will auto watch all contents
+     * of that directory recursively. You will need a different paths argument to truly
+     * remove all files, it may be easier to call watchEnd() and then restart the watch()
+     * you still need.
+     *
+     * @param {String|Array} paths Files, directories, or glob patterns for tracking. Takes an
+     *                             array of strings or just one string.
+     */
+    const unwatch = function (paths) {
+        // Convert paths to array if it's not already.
+        if (whatIs(paths) === 'string') {
+            paths = [paths];
+        }
+        // Search all watchers and remove any paths that match.
+        WATCHING.forEach((watcher) => {
+            watcher.unwatch(paths);
+        });
     };
 
     /**
@@ -670,6 +710,54 @@ function NodeSimpleServer(options) {
     };
 
     /**
+     * Start watching a file, files, directory, or directories for changes and then callback to
+     * functions that can/ will respond to these changes.
+     *
+     * @param {String|Array} paths Files, directories, or glob patterns for tracking. Takes an
+     *                             array of strings or just one string.
+     * @param {Object} options A special configuration object that includes {@link https://github.com/paulmillr/chokidar|chokidar} options and NSS options.
+     *                         See NSS's README for more information, options.events is required!
+     * @return {Boolean} True if it appears everything worked, false if something was missing or
+     *                   an error was thrown.
+     */
+    const watch = function (paths, options) {
+        // Insure we have an options object.
+        if (!options || !options.events) {
+            return false;
+        }
+        // Convert paths to array if it's not already.
+        if (whatIs(paths) === 'string') {
+            paths = [paths];
+        }
+        try {
+            // Start watching the path(s).
+            const watcher = Chokidar.watch(paths, options);
+            WATCHING.push(watcher);
+            // Hookup listeners as requested.
+            const safe = ['all', 'add', 'addDir', 'change', 'unlink', 'unlinkDir', 'ready', 'raw', 'error'];
+            Object.keys(options.events).forEach((key) => {
+                if (safe.includes(key)) {
+                    watcher.on(key, options.events[key]);
+                }
+            });
+        } catch (error) {
+            console.log(error);
+            return false;
+        }
+        return true;
+    };
+
+    /**
+     * Stop watching registered file, files, directory, or directories for changes.
+     */
+    const watchEnd = function () {
+        WATCHING.forEach((watcher) => {
+            watcher.close();
+        });
+        WATCHING.splice(0, WATCHING.length);
+    };
+
+    /**
      * The fastest way to get the actual type of anything in JavaScript; {@link https://jsbench.me/ruks9jljcu/2| Benchmarks}.
      *
      * @param {*} unknown Anything you wish to check the type of.
@@ -686,6 +774,7 @@ function NodeSimpleServer(options) {
 
     // Public methods.
     return {
+        getWatched,
         message,
         registerCallback,
         reloadPages,
@@ -694,7 +783,10 @@ function NodeSimpleServer(options) {
         reloadStyles,
         start,
         stop,
-        unregisterCallback
+        unregisterCallback,
+        unwatch,
+        watch,
+        watchEnd
     };
 
 }
