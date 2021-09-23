@@ -37,6 +37,24 @@ function NodeSimpleServer(options) {
     const WATCHING = [];
 
     /**
+     * Get an array of all the IP addresses you can reach this server at either from
+     * the machine itself or on the local area network (LAN).
+     *
+     * @return {Array} An array of loop back ip addresses and LAN addresses to this server.
+     */
+    const getAddresses = function () {
+        const locals = getLocalAddresses();
+        const addresses = [
+            `http://localhost:${OP.port}`,
+            `http://127.0.0.1:${OP.port}`
+        ];
+        Object.keys(locals).forEach((key) => {
+            addresses.push(`http://${locals[key]}:${OP.port}`);
+        });
+        return addresses;
+    };
+
+    /**
      * Get the contents of a directory for displaying in the directory listing page.
      *
      * @param {String} location The directory to search.
@@ -79,7 +97,7 @@ function NodeSimpleServer(options) {
      * Determine a files last modified time and report it in the format expected
      * by the HTTP Last-Modified header. {@link https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified| See standard}.
      *
-     * @param {String} date A time string representing the last modification of this file.
+     * @param {String} [date] A time string representing the last modification of this file.
      * @return {String} <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
      */
     const getLastModified = function (date) {
@@ -120,7 +138,7 @@ function NodeSimpleServer(options) {
      * @author Noah Isaacson
      * @return {Object} An object of interface names [key] and their IPv4 IP addresses [value].
      */
-    const getLocalAddress = function () {
+    const getLocalAddresses = function () {
         const addresses = {};
         const interfaces = OS.networkInterfaces();
         Object.keys(interfaces).filter((key) => {
@@ -560,12 +578,30 @@ function NodeSimpleServer(options) {
      *
      * @param {Int|null} port Allows force overriding of port number; you should usually not use
      *                        this, it's meant to be used internally to NSS.
+     * @param {Function} [callback] Optional function to call when the server successfully starts
+     *                              (true) or gives up on trying to start (false);
      * @return {null} Used only as a short circuit.
      */
-    const start = function (port) {
+    const start = function (port, callback) {
 
+        // Post is usually internal to NSS so check if a user placed the callback first.
+        if (port && typeof port === 'function') {
+            callback = port;
+            port = null;
+        }
+
+        // Make sure we have a proper callback function or null the variable.
+        if (callback && typeof callback !== 'function') {
+            callback = null;
+        }
+
+        // Don't start an already running server.
         if (OP.running) {
             console.log('Server is already running.');
+            // Notify the callback.
+            if (callback) {
+                callback(true);
+            }
             return;
         }
 
@@ -597,11 +633,15 @@ function NodeSimpleServer(options) {
                     // Stop trying new ports after 100 attempts.
                     if (OP.port - port > 100) {
                         console.log(`FATAL ERROR: Could not find an available port number in the range of ${OP.port}–${OP.port + 100}.`);
+                        // Notify the callback.
+                        if (callback) {
+                            callback(false);
+                        }
                         return;
                     }
-                    start(port + 1);
+                    start(port + 1, callback);
                 } else {
-                    start(OP.port + 1);
+                    start(OP.port + 1, callback);
                 }
             }
         });
@@ -622,21 +662,27 @@ function NodeSimpleServer(options) {
             }
 
             // Log the ip addresses being watched.
-            const networkIP = getLocalAddress();
             console.log('Node Simple Server live @:');
-            console.log(`    http://127.0.0.1:${port}`);
-            console.log(`    http://localhost:${port}`);
-            Object.keys(networkIP).forEach((key) => {
-                console.log(`    http://${networkIP[key]}:${port}`);
+            const addresses = getAddresses();
+            addresses.forEach((address) => {
+                console.log(`    ${address}`);
             });
             console.log('');
+
+            // Notify the callback.
+            if (callback) {
+                callback(true);
+            }
         });
     };
 
     /**
      * Stop the HTTP server and WebSocket listener gracefully.
+     *
+     * @param {Function} [callback] Optional function to call when the server successfully
+     *                              stops (true).
      */
-    const stop = function () {
+    const stop = function (callback) {
         if (OP.running) {
             // If any back-end files are being watched for changes stop monitoring them.
             watchEnd();
@@ -657,6 +703,10 @@ function NodeSimpleServer(options) {
             OP.running = false;
         }
         console.log('Server has been stopped.');
+        // Notify the callback.
+        if (callback) {
+            callback(true);
+        }
     };
 
     /**
@@ -781,6 +831,7 @@ function NodeSimpleServer(options) {
 
     // Public methods.
     return {
+        getAddresses,
         getWatched,
         message,
         registerCallback,

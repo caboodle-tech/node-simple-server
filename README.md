@@ -4,9 +4,11 @@ Node Simple Server (NSS) is a small but effective node based server for developm
 
 :heavy_check_mark:&nbsp; You want to add live reloading to the development process of a static site.
 
-:heavy_check_mark:&nbsp; You want easy two-way communication from the back-end and front-end of your development site; WebSockets managed for you.
+:heavy_check_mark:&nbsp; You want easy two-way communication from the back-end and front-end of your development site (WebSockets managed for you).
 
 :heavy_check_mark:&nbsp; You want more fine grained control over the whole live reloading process.
+
+:heavy_check_mark:&nbsp; You want to easily test your development site on multiple devices (Must be on the same LAN).
 
 ## Installation
 
@@ -84,7 +86,7 @@ const options = {...};
 const Server = new NSS(options);
 ```
 
-### Server Options Object
+### :bookmark: Server Options (Object)
 
 #### **contentType** &nbsp;&nbsp;&nbsp;default: text/html
 
@@ -106,7 +108,7 @@ const Server = new NSS(options);
 
 -   The port number the HTTP and WebSocket server should listen on for requests.
 
-### Watch Options Object
+### :bookmark: Watch Options (Object)
 
 #### **events**
 
@@ -170,9 +172,13 @@ const Server = new NSS(options);
 
 Most of the **Watch Object Options** are directly from [chokidar](https://github.com/paulmillr/chokidar) which is being used to handle the file monitoring. You may want to visit the [chokidar repo](https://github.com/paulmillr/chokidar) for more information.
 
-### Server Methods
+### :bookmark: Server Methods
 
 With your new instance of NSS you can call any of the following public methods:
+
+### **getAddresses**
+
+- Returns an array of all the IP addresses you can reach this server at either from the machine itself or on the local area network (LAN).
 
 #### **getWatched**
 
@@ -202,11 +208,11 @@ With your new instance of NSS you can call any of the following public methods:
 
 -   Sends the refreshCSS signal to all active pages.
 
-#### **start()**
+#### **start(\[port\], \[callback\])**
 
 -   Starts the HTTP and WebSocket servers. NOTE: This is a blocking process and will keep any application that ran it alive until stopped gracefully or forcefully terminated. If you do not want this behavior for any reason you will need to call this in its own process.
 
-#### **stop()**
+#### **stop(\[callback\])**
 
 -   Gracefully closes all HTTP and WebSocket connections and turns off the servers.
 
@@ -226,7 +232,7 @@ With your new instance of NSS you can call any of the following public methods:
 
 -   Stop watching registered file, files, directory, or directories for changes.
 
-#### **[ Symbol Key ]**
+### :bookmark: [ Symbol Key ]
 
 **^** `pattern` refers to either a `RegExp` object or a string of text that represents a regular expression without surrounding slashes (/) or modifiers (g, i, etc.). If you provide a string make sure to correctly escape literal characters. In some instances `pattern` can also be a string of text representing a page's unique ID. `pattern` does not recognize glob patterns!
 
