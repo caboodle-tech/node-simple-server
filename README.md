@@ -232,7 +232,7 @@ With your new instance of NSS you can call any of the following public methods:
 
 -   Stop watching registered file, files, directory, or directories for changes.
 
-### :bookmark: [ Symbol Key ]
+### :bookmark: Symbol Key
 
 **^** `pattern` refers to either a `RegExp` object or a string of text that represents a regular expression without surrounding slashes (/) or modifiers (g, i, etc.). If you provide a string make sure to correctly escape literal characters. In some instances `pattern` can also be a string of text representing a page's unique ID. `pattern` does not recognize glob patterns!
 
