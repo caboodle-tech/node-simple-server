@@ -9,7 +9,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/caboodle-tech/nss.git"
+        "url": "git+https://github.com/caboodle-tech/node-simple-server.git"
     },
     "keywords": [
         "Node",
@@ -27,16 +27,16 @@
     ],
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/caboodle-tech/nss/issues"
+        "url": "https://github.com/caboodle-tech/node-simple-server/issues"
     },
-    "homepage": "https://github.com/caboodle-tech/nss#readme",
+    "homepage": "https://github.com/caboodle-tech/node-simple-server#readme",
     "dependencies": {
         "chokidar": "^3.5.2",
-        "ws": "^8.2.2"
+        "ws": "^8.2.3"
     },
     "devDependencies": {
         "eslint": "^7.32.0",
         "eslint-config-airbnb-base": "^14.2.1",
-        "eslint-plugin-import": "^2.24.2"
+        "eslint-plugin-import": "^2.25.2"
     }
 }
