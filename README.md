@@ -8,7 +8,7 @@ Node Simple Server (NSS) is a small but effective node based server for developm
 
 :heavy_check_mark:&nbsp; You want more fine grained control over the whole live reloading process.
 
-:heavy_check_mark:&nbsp; You want to easily test your development site on multiple devices (Must be on the same LAN).
+:heavy_check_mark:&nbsp; You want to easily test your development site on multiple devices; must be on the same LAN.
 
 ## Installation
 
