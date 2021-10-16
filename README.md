@@ -14,7 +14,7 @@ Node Simple Server (NSS) is a small but effective node based server for developm
 
 ### Manually:
 
-NSS can be manually incorporated into your development process/ application. Extract the `nss` folder from the [latest release](https://github.com/caboodle-tech/nss/releases/) and then `require` the server module into your code, similar to:
+NSS can be manually incorporated into your development process/ application. Extract the `nss` folder from the [latest release](https://github.com/caboodle-tech/node-simple-server/releases/) and then `require` the server module into your code, similar to:
 
 ```javascript
 const NSS = require("./nss/server");
@@ -244,4 +244,4 @@ The [current changelog is here](./changelogs/v1.md). All [other changelogs are h
 
 ## Contributions
 
-NSS is an open source community supported project, if you would like to help please consider <a href="https://github.com/caboodle-tech/nss/issues" target="_blank">tackling an issue</a> or <a href="https://ko-fi.com/caboodletech" target="_blank">making a donation</a> to keep the project alive.
+NSS is an open source community supported project, if you would like to help please consider <a href="https://github.com/caboodle-tech/node-simple-server/issues" target="_blank">tackling an issue</a> or <a href="https://ko-fi.com/caboodletech" target="_blank">making a donation</a> to keep the project alive.
