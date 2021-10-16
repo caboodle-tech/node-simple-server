@@ -48,7 +48,7 @@ NSS is designed to be controlled and/or wrapped by another application. The bare
 
 ```javascript
 // Require NSS. Here it is required from a manual install.
-const NSS = require("./nss/server");
+const NSS = require("./server");
 
 // Get a new instance of NSS.
 const Server = new NSS();
