@@ -39,7 +39,7 @@ Depending on how you use and incorporate NSS into your project will determine wh
 You can install and use NSS globally with:
 
 ```bash
-npm install --global @caboodle-tech/nss
+npm install --global @caboodle-tech/node-simple-server
 ```
 
 ## Usage
