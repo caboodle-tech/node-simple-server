@@ -26,10 +26,10 @@ You can install and use NSS locally in a project with:
 
 ```bash
 // As a normal dependency:
-npm install @caboodle-tech/nss
+npm install @caboodle-tech/node-simple-server
 
 // or as a development dependency:
-npm install @caboodle-tech/nss --save-dev
+npm install @caboodle-tech/node-simple-server --save-dev
 ```
 
 Depending on how you use and incorporate NSS into your project will determine what it's dependency type should be.
