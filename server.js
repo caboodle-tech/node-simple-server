@@ -42,14 +42,14 @@ function NodeSimpleServer(options) {
      *
      * @return {Array} An array of loop back ip addresses and LAN addresses to this server.
      */
-    const getAddresses = function () {
+    const getAddresses = function (port) {
         const locals = getLocalAddresses();
         const addresses = [
-            `http://localhost:${OP.port}`,
-            `http://127.0.0.1:${OP.port}`
+            `http://localhost:${port}`,
+            `http://127.0.0.1:${port}`
         ];
         Object.keys(locals).forEach((key) => {
-            addresses.push(`http://${locals[key]}:${OP.port}`);
+            addresses.push(`http://${locals[key]}:${port}`);
         });
         return addresses;
     };
@@ -663,7 +663,7 @@ function NodeSimpleServer(options) {
 
             // Log the ip addresses being watched.
             console.log('Node Simple Server live @:');
-            const addresses = getAddresses();
+            const addresses = getAddresses(port);
             addresses.forEach((address) => {
                 console.log(`    ${address}`);
             });
@@ -701,8 +701,8 @@ function NodeSimpleServer(options) {
             SERVER = null;
             SOCKET = null;
             OP.running = false;
+            console.log('Server has been stopped.');
         }
-        console.log('Server has been stopped.');
         // Notify the callback.
         if (callback) {
             callback(true);

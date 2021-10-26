@@ -4,7 +4,7 @@ Node Simple Server (NSS) is a small but effective node based server for developm
 
 :heavy_check_mark:&nbsp; You want to add live reloading to the development process of a static site.
 
-:heavy_check_mark:&nbsp; You want easy two-way communication from the back-end and front-end of your development site (WebSockets managed for you).
+:heavy_check_mark:&nbsp; You want easy two-way communication from the back-end and front-end of your development site; WebSockets managed for you.
 
 :heavy_check_mark:&nbsp; You want more fine grained control over the whole live reloading process.
 
@@ -14,10 +14,10 @@ Node Simple Server (NSS) is a small but effective node based server for developm
 
 ### Manually:
 
-NSS can be manually incorporated into your development process/ application. Extract the `nss` folder from the [latest release](https://github.com/caboodle-tech/node-simple-server/releases/) and then `require` the server module into your code, similar to:
+Noe Simple Server (NSS) can be manually incorporated into your development process/ application. Extract the `nss` folder from the [latest release](https://github.com/caboodle-tech/node-simple-server/releases/) and then `require` the server module into your code, similar to:
 
 ```javascript
-const NSS = require("./nss/server");
+const NodeSimpleServer = require("./node-simple-server/server");
 ```
 
 ### Locally:
@@ -48,10 +48,10 @@ NSS is designed to be controlled and/or wrapped by another application. The bare
 
 ```javascript
 // Require NSS. Here it is required from a manual install.
-const NSS = require("./server");
+const NodeSimpleServer = require("./server");
 
 // Get a new instance of NSS.
-const Server = new NSS();
+const Server = new NodeSimpleServer();
 
 // Start the server.
 Server.start();
@@ -83,7 +83,7 @@ NSS uses the current working directory as the live servers root and is pre-confi
 const options = {...};
 
 // Get a new instance of NSS and pass in the options.
-const Server = new NSS(options);
+const Server = new NodeSimpleServer(options);
 ```
 
 ### :bookmark: Server Options (Object)
