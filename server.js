@@ -30,10 +30,11 @@ function NodeSimpleServer(options) {
         root: Path.normalize(`${process.cwd()}/`),
         running: false
     };
+    const RELOAD = ['.html', '.htm'];
     const SEP = Path.sep;
     let SERVER = null;
     let SOCKET = null;
-    const VERSION = '0.1.0-rc'; // Update on releases.
+    const VERSION = '1.3.0'; // Update on releases.
     const WATCHING = [];
 
     /**
@@ -503,12 +504,25 @@ function NodeSimpleServer(options) {
 
                 // Output the file to the browser.
                 response.writeHead(HTTPStatus.ok, getHeaders(contentType, safeURL));
-                response.write(file, 'binary');
 
-                // Inject NSS's WebSocket at the end of the page and close initial connection.
-                response.write(inject);
+                // If needed inject NSS's WebSocket at the end of the page.
+                if (RELOAD.includes(Path.extname(safeURL))) {
+                    let html = file.toString();
+                    const last = html.lastIndexOf('</body>');
+                    if (last && last > 0) {
+                        const start = html.substr(0, last);
+                        const end = html.substr(last);
+                        html = start + inject + end;
+                        response.write(html, 'utf8');
+                    } else {
+                        response.write(file, 'binary');
+                    }
+                } else {
+                    response.write(file, 'binary');
+                }
+
+                // Close initial connection.
                 response.end();
-
             });
 
         });
