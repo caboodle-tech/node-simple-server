@@ -106,7 +106,7 @@ const Server = new NodeSimpleServer(options);
 
 #### **root** &nbsp;&nbsp;&nbsp;default: process.cwd()
 
--   The port number the HTTP and WebSocket server should listen on for requests.
+-   The absolute path to the directory that should be considered the servers root directory.
 
 ### :bookmark: Watch Options (Object)
 
