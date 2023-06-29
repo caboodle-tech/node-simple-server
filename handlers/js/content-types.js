@@ -4,6 +4,7 @@
  * what content its serving, its up to the browser to do the rest of the work.
  */
 const contentTypes = {
+    '': 'application/octet-stream',
     '.aac': 'audio/aac',
     '.avi': 'video/x-msvideo',
     '.bmp': 'image/bmp',
@@ -15,6 +16,7 @@ const contentTypes = {
     '.epub': 'application/epub+zip',
     '.gif': 'image/gif',
     '.gz': 'application/gzip',
+    '.htm': 'text/html',
     '.html': 'text/html',
     '.ico': 'image/x-icon',
     '.jpeg': 'image/jpeg',
@@ -60,4 +62,4 @@ const contentTypes = {
     '.zip': 'application/zip'
 };
 
-module.exports = contentTypes;
+export default contentTypes;

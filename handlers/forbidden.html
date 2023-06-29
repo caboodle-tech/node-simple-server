@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- This is NSS's forbidden page. -->
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>403 Forbidden</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                padding: 15px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>403 Forbidden</h1>
+        <p>
+            You don't have permission to access
+            <script type="text/javascript">
+                document.write(document.location.pathname);
+            </script>
+            on this server.
+        </p>
+        <hr>
+        <p>
+            <i>
+                Node Simple Server (NSS) {{version}} Server
+                <script type="text/javascript">
+                    document.write(`${document.location.protocol}//${document.location.hostname}`);
+                </script>
+                port
+                <script type="text/javascript">
+                    document.write(document.location.port);
+                </script>
+            </i>
+        </p>
+        {{live_reload}}
+    </body>
+</html>

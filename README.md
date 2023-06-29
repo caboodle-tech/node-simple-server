@@ -1,23 +1,25 @@
 # NSS: a Node based Simple Server
 
-Node Simple Server (NSS) is a small but effective node based server for development sites and self controlled live reloading. You should consider using NSS if:
+A small but effective node based server for development sites, customizable live reloading, and websocket support built-in. You should consider using NSS if:
 
 :heavy_check_mark:&nbsp; You want to add live reloading to the development process of a static site.
 
-:heavy_check_mark:&nbsp; You want easy two-way communication from the back-end and front-end of your development site; WebSockets managed for you.
+:heavy_check_mark:&nbsp; You want easy two-way communication from the back-end and front-end of your development site with built-in WebSockets ready for use.
 
 :heavy_check_mark:&nbsp; You want more fine grained control over the whole live reloading process.
 
 :heavy_check_mark:&nbsp; You want to easily test your development site on multiple devices; must be on the same LAN.
 
+:heavy_check_mark:&nbsp; You want to easily setup a LAN application for educational purposes or other development; must be on the same LAN, please consider security implications.
+
 ## Installation
 
 ### Manually:
 
-Noe Simple Server (NSS) can be manually incorporated into your development process/ application. Extract the `nss` folder from the [latest release](https://github.com/caboodle-tech/node-simple-server/releases/) and then `require` the server module into your code, similar to:
+Noe Simple Server (NSS) can be manually incorporated into your development process/ application. Extract the `nss` folder from the [latest release](https://github.com/caboodle-tech/node-simple-server/releases/) and then `import` the server module into your code, similar to:
 
 ```javascript
-const NodeSimpleServer = require("./node-simple-server/server");
+import NodeSimpleServer from './nss.js';
 ```
 
 ### Locally:
@@ -25,14 +27,14 @@ const NodeSimpleServer = require("./node-simple-server/server");
 You can install and use NSS locally in a project with:
 
 ```bash
-// As a normal dependency:
+# As a normal dependency:
 npm install @caboodle-tech/node-simple-server
 
-// or as a development dependency:
+# or as a development dependency:
 npm install @caboodle-tech/node-simple-server --save-dev
 ```
 
-Depending on how you use and incorporate NSS into your project will determine what it's dependency type should be.
+Depending on how you use and incorporate NSS into your project will determine the best dependency strategy to use.
 
 ### Globally:
 
@@ -47,36 +49,65 @@ npm install --global @caboodle-tech/node-simple-server
 NSS is designed to be controlled and/or wrapped by another application. The bare minimum code needed to use NSS in your application is:
 
 ```javascript
-// Require NSS. Here it is required from a manual install.
-const NodeSimpleServer = require("./server");
+/**
+ * Import NSS. Here it is being imported from a manual install.
+ * NOTE: Manual installs must include the handlers directory one directory higher than NSS.
+ */
+import NodeSimpleServer from './nss.js';
+import path from 'path'
+
+// This is needed for ES modules.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Determine what directory to watch for changes.
+const websiteRoot = __dirname;
+
+// Build a bare minimum server options object.
+const serverOptions = {
+    root: websiteRoot
+};
 
 // Get a new instance of NSS.
-const Server = new NodeSimpleServer();
+const Server = new NodeSimpleServer(serverOptions);
 
 // Start the server.
 Server.start();
 
-// A bare minimum callback to handle changes.
-function changes(event, path) {
-    if (event === "change") {
+// A bare minimum callback to handle most development changes.
+function watcherCallback(event, path, extension) {
+    if (extension === 'css') {
+        Server.reloadAllStyles();
+        return;
+    }
+    if (extension === 'js') {
+        /**
+         * NOTE: This is a heavy request to use if your site loads resources from
+         * other sites such as images, databases, or API calls. Consider a better
+         * approach in this cases such as throttling.
+         */
+        Server.reloadAllPages();
+        return;
+    }
+    if (event === 'change') {
         Server.reloadSinglePage(path);
     }
 }
 
 // Build a bare minimum watcher options object.
-const options = {
+const watcherOptions = {
     events: {
-        all: changes,
+        all: watcherCallback, // Just send everything to a single function.
     },
 };
 
-// Watch current directory for changes.
-Server.watch(".", options);
+// Watch the current directory for changes.
+Server.watch(websiteRoot, watcherOptions);
 ```
 
 The `options` object **required** by the `watch` method must include an `events` property with at least one watched event. The demo code above used `all` to capture any event. This object takes a lot of settings and is explained below in the **Watch Options** table.
 
-NSS uses the current working directory as the live servers root and is pre-configured with several additional default settings. You can change these by providing your own `options` object when instantiating the server. How this looks in code is shown below, the following table **Server Options** explains all available options.
+NSS uses `process.cwd()` as the live servers root if omitted and is pre-configured with several additional default settings. You can change these by providing your own `options` object when instantiating the server. How this looks in code is shown below, the following table **Server Options** explains all available options.
 
 ```javascript
 // Make your options object.
@@ -85,6 +116,8 @@ const options = {...};
 // Get a new instance of NSS and pass in the options.
 const Server = new NodeSimpleServer(options);
 ```
+
+**Note:** If you set `options.root` to a different location than the current directory, you should usually provide the same path or a child path of this path, when you instantiate `Server.watch`.
 
 ### :bookmark: Server Options (Object)
 
@@ -132,7 +165,7 @@ const Server = new NodeSimpleServer(options);
 
 #### **cwd**
 
--   The base directory from which watch `paths` are to be derived. Paths emitted with events will be relative to this.
+-   The base directory from which watch `paths` are to be derived. Paths emitted with events will be relative to this path and will use only forward slashes (/) on all operating systems.
 
 #### **disableGlobbing** &nbsp;&nbsp;&nbsp;default: false
 
@@ -154,9 +187,9 @@ const Server = new NodeSimpleServer(options);
 
 -   If relying upon the `fs.Stats` object that may get passed with `add`, `addDir`, and `change` events, set this to `true` to ensure it is provided even in cases where it wasn't already available from the underlying watch events.
 
-#### **depth**
+#### **depth** &nbsp;&nbsp;&nbsp;default: undefined
 
--   If set, limits how many levels of subdirectories will be traversed.
+-   If set, limits how many levels of subdirectories will be traversed when watching for changes.
 
 #### **awaitWriteFinish** &nbsp;&nbsp;&nbsp;default: false
 
@@ -170,11 +203,15 @@ const Server = new NodeSimpleServer(options);
 
 -   Automatically filters out artifacts that occur when using editors that use "atomic writes" instead of writing directly to the source file.
 
-Most of the **Watch Object Options** are directly from [chokidar](https://github.com/paulmillr/chokidar) which is being used to handle the file monitoring. You may want to visit the [chokidar repo](https://github.com/paulmillr/chokidar) for more information.
+Most of the **Watch Object Options** are directly from [chokidar](https://github.com/paulmillr/chokidar) which is being used to handle the file monitoring. You may want to visit the [chokidar repo](https://github.com/paulmillr/chokidar) for more information. Please note that event paths are altered by NSS to only use forward slashes (/) on all operating systems.
 
 ### :bookmark: Server Methods
 
 With your new instance of NSS you can call any of the following public methods:
+
+#### **addWebsocketCallback(pattern^, callback)**
+
+-   Register a function (`callback`) to receive messages from the front-end if the pages URL matches the `pattern`.
 
 ### **getAddresses**
 
@@ -184,13 +221,9 @@ With your new instance of NSS you can call any of the following public methods:
 
 -   Returns an array of watcher objects showing you which directories and files are actively being watched for changes.
 
-#### **message(pattern^, msg)**
+#### **message(pageId | pattern^, msg)**
 
--   Send a message (`msg`) via WebSocket to the page or pages that match the `pattern`.
-
-#### **registerCallback(pattern^, callback)**
-
--   Register a function (`callback`) to receive messages from the front-end if the pages URL matches the `pattern`.
+-   Send a message (`msg`) via WebSocket to the page that matches the `pageId`, or send to a page or pages that match the `pattern`.
 
 #### **reloadPages()**
 
@@ -208,29 +241,29 @@ With your new instance of NSS you can call any of the following public methods:
 
 -   Sends the refreshCSS signal to all active pages.
 
-#### **start(\[port\], \[callback\])**
+#### **removeWebsocketCallback(pattern^, callback)**
 
--   Starts the HTTP and WebSocket servers. NOTE: This is a blocking process and will keep any application that ran it alive until stopped gracefully or forcefully terminated. If you do not want this behavior for any reason you will need to call this in its own process.
+-   Unregister (stop messaging) a `callback` function that was initially registered with the `pattern`.
+
+#### **start(\[callback\]) | start(\[port\], \[callback\])**
+
+-   Starts the HTTP and WebSocket servers and notifies `callback` if present. `Port` is meant to be an internal option for NSS only but you may specify a port number for NSS to use if you have strict requirements in your environment. NOTE: This is a blocking process and will keep any application that ran it alive until stopped gracefully or forcefully terminated. If you do not want this behavior for any reason you will need to call this in its own process.
 
 #### **stop(\[callback\])**
 
--   Gracefully closes all HTTP and WebSocket connections and turns off the servers.
-
-#### **unregisterCallback(pattern^, callback)**
-
--   Unregister (stop messaging) a function (`callback`) that was initially registered with the `pattern`.
+-   Gracefully closes all HTTP and WebSocket connections and turns off the servers, notifying `callback` if present.
 
 #### **unwatch(paths^^)**
 
--   Stop watching directories or files for changes; previously registered with `watch`.
+-   Stop watching directories or files (`paths`) for changes previously registered with `watch`.
 
-#### **watch(paths^^, options)**
+#### **watch(paths^^, watchOptionsObject)**
 
--   Start watching a file, files, directory, or directories for changes and then callback to functions that can/ will respond to these changes.
+-   Start watching a file, files, directory, or directories (`paths`) for changes and then callback to functions set in `watchOptionsObject` that will respond to these changes.
 
 #### **watchEnd()**
 
--   Stop watching registered file, files, directory, or directories for changes.
+-   Stop watching all registered file, files, directory, or directories for changes.
 
 ### :bookmark: Symbol Key
 
@@ -240,7 +273,7 @@ With your new instance of NSS you can call any of the following public methods:
 
 ## Changelog
 
-The [current changelog is here](./changelogs/v1.md). All [other changelogs are here](./changelogs).
+The [current changelog is here](./changelogs/v2.md). All [other changelogs are here](./changelogs).
 
 ## Contributions
 

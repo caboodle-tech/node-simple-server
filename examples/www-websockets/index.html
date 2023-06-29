@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Websocket Demo</title>
+    <link rel="stylesheet" href="./css/normalize.css">
+    <link rel="stylesheet" href="./css/main.css">
+    <script src="./js/main.js" defer></script>
+</head>
+<body>
+    <div id="page-container">
+        <header>
+            <div class="content">
+                <img class="logo" src="./assets/imgs/logo.png" title="Caboodle Tech Inc." alt="Caboodle Tech logo">
+            </div>
+        </header>
+        <main>
+            <div class="content">
+                <h1>Websocket Demo</h1>
+                <p>
+                    This is a simple demo of using websockets with Node Simple Server (NSS). The demo below allows you to send a short text message from your website (front-end) to the back-end (server). The server will then respond after a short delay with a generic message letting you know the message was received. This demo mimics a messaging app for fun, you do not need to use websockets for an actual messaging app, and you should consider the security implications if you choose to.
+                </p>
+                <div id="chat">
+                    <div id="messages"></div>
+                    <div id="controls">
+                        <textarea maxlength="160"></textarea>
+                        <button type="button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M24 0l-6 22-8.129-7.239 7.802-8.234-10.458 7.227-7.215-1.754 24-12zm-15 16.668v7.332l3.258-4.431-3.258-2.901z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <p>
+                    <strong>NOTE:</strong> Every time a page connects via websocket it is assigned a random page id so you can reply to that exact page if you ever need to. This id is not permanent! Every page refresh or navigation triggers the creation of a new page id and the deletion of the old from the servers websocket records.
+                </p>
+            </div>
+        </main>
+        <footer>
+            <div class="content">
+                Made with <svg class="heart-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M18 1l-6 4-6-4-6 5v7l12 10 12-10v-7z"/></svg> by Caboodle Tech
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

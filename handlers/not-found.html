@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- This is NSS's 404 page. -->
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>404 Not Found</title>
+        <style>
+            html,
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            body {
+                padding: 15px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>404 Not Found</h1>
+        <p>
+            The requested URL
+            <script type="text/javascript">
+                document.write(document.location.pathname);
+            </script>
+            was not found on this server.
+        </p>
+        <hr>
+        <p>
+            <i>
+                Node Simple Server (NSS) {{version}} Server
+                <script type="text/javascript">
+                    document.write(`${document.location.protocol}//${document.location.hostname}`);
+                </script>
+                Port
+                <script type="text/javascript">
+                    document.write(document.location.port);
+                </script>
+            </i>
+        </p>
+        {{live_reload}}
+    </body>
+</html>
