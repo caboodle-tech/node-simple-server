@@ -16,7 +16,7 @@ A small but effective node based server for development sites, customizable live
 
 ### Manually:
 
-Noe Simple Server (NSS) can be manually incorporated into your development process/ application. Extract the `nss` folder from the [latest release](https://github.com/caboodle-tech/node-simple-server/releases/) and then `import` the server module into your code, similar to:
+Node Simple Server (NSS) can be manually incorporated into your development process/ application. Extract the `nss` folder from the [latest release](https://github.com/caboodle-tech/node-simple-server/releases/) and then `import` the server module into your code, similar to:
 
 ```javascript
 import NodeSimpleServer from './nss.js';
