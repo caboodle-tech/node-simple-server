@@ -50,17 +50,21 @@ NSS is designed to be controlled and/or wrapped by another application. The bare
 
 ```javascript
 /**
- * Import NSS. Here it is being imported from a manual install.
+ * If you want/need to import NSS from a manual install replace the below import statement with:
+ * 
+ * import NodeSimpleServer from './nss.js';
+ * 
  * NOTE: Manual installs must include the handlers directory one directory higher than NSS.
  */
-import NodeSimpleServer from './nss.js';
+import NodeSimpleServer from '@caboodle-tech/node-simple-server'
+import { fileURLToPath } from 'url';
 import path from 'path'
 
 // This is needed for ES modules.
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Determine what directory to watch for changes.
+// Determine what directory to watch for changes; defaults to project root.
 const websiteRoot = __dirname;
 
 // Build a bare minimum server options object.
@@ -70,9 +74,6 @@ const serverOptions = {
 
 // Get a new instance of NSS.
 const Server = new NodeSimpleServer(serverOptions);
-
-// Start the server.
-Server.start();
 
 // A bare minimum callback to handle most development changes.
 function watcherCallback(event, path, extension) {
@@ -94,14 +95,30 @@ function watcherCallback(event, path, extension) {
     }
 }
 
-// Build a bare minimum watcher options object.
+// A bare minimum callback to handle all websocket messages from the frontend.
+function websocketCallback(messageObject, pageId) {
+    // Interpret and do what you need to with the message:
+    const datatype = messageObject.type
+    const data = messageObject.data;
+    console.log(`Received ${datatype} data from page ${pageId}: ${data}`)
+
+    // Respond to the page that sent the message if you like:
+    Server.message(pageId, 'Messaged received!');
+}
+
+Server.addWebsocketCallback('.*', websocketCallback);
+
+// A bare minimum watcher options object; use for development, omit for production.
 const watcherOptions = {
     events: {
         all: watcherCallback, // Just send everything to a single function.
     },
 };
 
-// Watch the current directory for changes.
+// Start the server.
+Server.start();
+
+// Watch the current directory for changes; use for development, omit for production.
 Server.watch(websiteRoot, watcherOptions);
 ```
 
