@@ -1,70 +1,21 @@
-<!-- Code injected by Node Simple Server for live reloading. -->
-<style>
-    #NSS_WS{display:flex;justify-content:center;align-items:center;position:fixed;right:15px;bottom:15px;z-index:9000;width:80px;height:45px;border-radius:25px;background:#000}#NSS_WS svg{margin-left:5px;fill:#ffffff}#NSS_WS span{display:inline-block;margin-right:5px;font-family:monospace;font-size:22px;color:#fff}
-</style>
-<script type='text/javascript'>
+<!-- Code injected by Node Simple Server. -->
+<script type="text/javascript">
     // <![CDATA[
-    if ('WebSocket' in window) {
+    if ("WebSocket" in window) {
         NSS_WS = (() => {
-            /** Handles showing the user the server disconnected and attempts to reconnect */
-            const disconnected = () => {
-                const icon = '<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd"><path d="M6.817 5.084l-2.057-2.937 1.639-1.147 14.601 20.853-1.638 1.147-1.401-2h-12.461c-3.037 0-5.5-2.463-5.5-5.5 0-2.702 1.951-4.945 4.521-5.408.105-1.965.965-3.73 2.296-5.008zm3.032-1.771c.681-.204 1.403-.313 2.151-.313 4.006 0 7.267 3.141 7.479 7.092 2.57.463 4.521 2.706 4.521 5.408 0 1.898-.962 3.571-2.424 4.56l-1.149-1.64c.947-.627 1.573-1.702 1.573-2.92 0-2.969-2.688-3.766-4.433-3.72.324-3.983-2.114-6.78-5.567-6.78-.317 0-.624.023-.922.068l-1.229-1.755zm-4.349 15.687h11.061l-8.595-12.274c-1.038 1.169-1.618 2.895-1.533 5.054-1.954-.113-4.433.923-4.433 3.72 0 1.93 1.57 3.5 3.5 3.5z"></path></svg>';
-                // Create the icon container.
-                let div = document.createElement('DIV');
-                div.id = 'NSS_WS';
-                div.innerHTML = '<span id="NSS_WS_RETRY">02</span>' + icon;
-                // Add the container to the page.
-                if (document.body.firstChild) {
-                    document.body.insertBefore(div, document.body.firstChild);
-                } else {
-                    document.body.appendChild(div);
-                }
-                // Keep updating the reconnect timer.
-                counterInterval = setInterval(function () {
-                    var counter = document.getElementById('NSS_WS_RETRY');
-                    var seconds = parseInt(counter.innerHTML) - 1;
-                    if (seconds <= 0) {
-                        seconds = 3000 * restartAttempts * 0.001;
-                    }
-                    if (seconds < 10) {
-                        seconds = `0${seconds}`;
-                    }
-                    counter.innerHTML = seconds;
-                }, 1000);
-            };
-
             /** Expose the random page ID that was assigned to this page. */
             const getId = () => {
                 return pageId;
             };
 
-            /** Reload the pages stylesheets. */
-            const refreshCSS = () => {
-                const sheets = [].slice.call(document.getElementsByTagName('link'));
-                const head = document.getElementsByTagName('head')[0];
-                for (let i = 0; i < sheets.length; i++) {
-                    const elem = sheets[i];
-                    const parent = elem.parentElement || head;
-                    parent.removeChild(elem);
-                    const rel = elem.rel;
-                    if ((elem.href && typeof rel != 'string') || rel.length == 0 || rel.toLowerCase() == 'stylesheet') {
-                        const url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
-                        let newUrl = url + (url.indexOf('?') >= 0 ? '&' : '?');
-                        newUrl += '_cacheOverride=' + new Date().valueOf();
-                        elem.href = newUrl;
-                    }
-                    parent.appendChild(elem);
-                }
-            };
-
             /** Register a function or functions to call when this page receives a WebSocket message. */
             const registerCallback = (func) => {
-                if (whatIs(func) === 'function') {
+                if (whatIs(func) === "function") {
                     callbacks.push(func);
                 }
             };
 
-            /** Attempt to reestablish a connection to the WebSocket server; used with disconnected(). */
+            /** Attempt to reestablish a connection to the WebSocket server. */
             const restart = () => {
                 const http = new XMLHttpRequest();
                 http.onerror = function (e) {
@@ -78,7 +29,7 @@
                         }
                     }
                 };
-                http.open('GET', window.location.href);
+                http.open("GET", window.location.href);
                 http.send();
                 // Keep attempting to reconnect unless told not to.
                 if (autoRestart) {
@@ -99,7 +50,7 @@
                     }));
                     return;
                 }
-                console.warn('Node Simple Server: The WebSocket is not ready or the connection was closed.');
+                console.warn("Node Simple Server: The WebSocket is not ready or the connection was closed.");
             };
 
             /** Generate a random unique ID for this page; will be registered in the back-end. */
@@ -139,37 +90,27 @@
             let restartAttempts = 0;
             let restartInterval = null;
 
-            // Prep window path.
-            let pathname = window.location.pathname;
-            if (pathname === '/') {
-                pathname = '';
-            }
-
             // Socket specific variables.
-            const protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-            const address = `${protocol}{{HOST_ADDRESS}}${pathname}/ws?id=${pageId}`;
+            const protocol = window.location.protocol === "http:" ? "ws://" : "wss://";
+            const address = protocol + window.location.host + window.location.pathname + "/ws?id=" + pageId;
             const socket = new WebSocket(address);
 
             // Respond to messages the socket receives.
             socket.onmessage = (evt) => {
                 const msgObj = JSON.parse(evt.data); // NSS uses a standard messaging object.
                 switch (msgObj.message) {
-                    case 'close':
+                    case "close":
                         ready = false;
                         break;
-                    case 'disableAutoRestart':
+                    case "disableAutoRestart":
                         autoRestart = false;
                         clearInterval(restartInterval);
                         clearInterval(counterInterval);
-                        console.log('Node Simple Server: Auto restart disabled, manually refresh page if server disconnects.');
                         break;
                     case 'ping':
                         send('pong');
                         break;
-                    case 'refreshCSS':
-                        refreshCSS();
-                        break;
-                    case 'reload':
+                    case "reload":
                         window.location.reload();
                         break;
                     default:
@@ -184,18 +125,15 @@
             };
 
             // Mark the script as not ready when the websocket connection is closed.
-            socket.addEventListener('close', () => {
+            socket.addEventListener("close", () => {
                 ready = false;
-                console.warn('Node Simple Server: Connection closed, live reload disabled.');
                 if (autoRestart) {
-                    disconnected();
                     restartInterval = setInterval(restart, 3000);
                 }
             });
 
             // Mark the script as ready when a websocket connection is established.
-            socket.addEventListener('open', () => {
-                console.log('Node Simple Server: Live reload enabled.');
+            socket.addEventListener("open", () => {
                 ready = true;
             });
 
@@ -209,7 +147,7 @@
             };
         })();
     } else {
-        console.error('Node Simple Server: This Browser does NOT support WebSocket for live reloading.');
+        console.error("Node Simple Server: This Browser does NOT support WebSockets.");
     }
     // ]]>
 </script>

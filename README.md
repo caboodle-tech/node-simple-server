@@ -4,13 +4,15 @@ A small but effective node based server for development sites, customizable live
 
 :heavy_check_mark:&nbsp; You want to add live reloading to the development process of a static site.
 
-:heavy_check_mark:&nbsp; You want easy two-way communication from the back-end and front-end of your development site with built-in WebSockets ready for use.
+:heavy_check_mark:&nbsp; You want easy two-way communication from the back-end and front-end of your development site or web based application with built-in WebSockets ready for use.
 
 :heavy_check_mark:&nbsp; You want more fine grained control over the whole live reloading process.
 
 :heavy_check_mark:&nbsp; You want to easily test your development site on multiple devices; must be on the same LAN.
 
 :heavy_check_mark:&nbsp; You want to easily setup a LAN application for educational purposes or other development; must be on the same LAN, please consider security implications.
+
+:heavy_check_mark:&nbsp; You want to easily setup a web based application that leverages the browser as your apps GUI but can interact with system data via websocket; great for internal applications.
 
 ## Installation
 
@@ -146,9 +148,25 @@ const Server = new NodeSimpleServer(options);
 
 -   If a directory is requested should the directory listing page be shown.
 
+#### **disableAutoRestart** &nbsp;&nbsp;&nbsp;default: false
+
+-   If the server shuts off or crashes do not attempt to auto reconnect to it.
+
+#### **hostAddress** &nbsp;&nbsp;&nbsp;default: 127.0.0.1
+
+-   What IPv4 address or domain name to listen on.
+
+**NOTE:** This is an advanced setting and should rarely need to be altered.
+
 #### **indexPage** &nbsp;&nbsp;&nbsp;default: index.html
 
 -   If a directory is requested consider this file to be the index page if it exits at that location.
+
+#### **liveReloading** &nbsp;&nbsp;&nbsp;default: true
+
+-   Reload the frontend when changes occur on the backend; disable if using NSS in a *production* setting.
+
+**NOTE:** Even if you are not watching for any events this loads a full NSS developer websocket into all pages on the server address. Disabling this will load only a simplified NSS websocket.
 
 #### **port** &nbsp;&nbsp;&nbsp;default: 5000
 
@@ -290,7 +308,7 @@ With your new instance of NSS you can call any of the following public methods:
 
 ## Changelog
 
-The [current changelog is here](./changelogs/v2.md). All [other changelogs are here](./changelogs).
+The [current changelog is here](./changelogs/v3.md). All [other changelogs are here](./changelogs).
 
 ## Contributions
 

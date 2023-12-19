@@ -23,13 +23,16 @@ class NodeSimpleServer {
         callbacks: [],
         contentType: 'text/html',
         dirListing: false,
+        disableAutoRestart: false,
+        hostAddress: '127.0.0.1',
         indexPage: 'index.html',
+        liveReloading: true,
         port: 5000,
         root: Path.normalize(`${process.cwd()}${Path.sep}`),
         running: false
     };
 
-    #reload = ['.html', '.htm'];
+    #reload = ['.asp', '.html', '.htm', '.php', '.php3'];
 
     #server = null;
 
@@ -40,7 +43,7 @@ class NodeSimpleServer {
         map: {}
     };
 
-    #VERSION = '2.0.0';
+    #VERSION = '3.0.1';
 
     #watching = [];
 
@@ -60,14 +63,29 @@ class NodeSimpleServer {
      *                              servers root directory.
      */
     constructor(options = {}) {
-        if (options.disableAutoRestart) {
-            this.#OPS.disableAutoRestart = true;
-        }
         if (options.contentType) {
             this.#OPS.contentType = options.contentType;
         }
-        if (options.dirListing) {
-            this.#OPS.dirListing = options.dirListing;
+        if ('dirListing' in options) {
+            if (this.whatIs(options.dirListing) == 'boolean') {
+                this.#OPS.dirListing = options.dirListing;
+            }
+        }
+        if ('disableAutoRestart' in options) {
+            if (this.whatIs(options.disableAutoRestart) == 'boolean') {
+                this.#OPS.disableAutoRestart = options.disableAutoRestart;
+            }
+        }
+        if (options.hostAddress) {
+            this.#OPS.hostAddress = options.hostAddress;
+        }
+        if (options.index) {
+            this.#OPS.index = options.index;
+        }
+        if ('liveReloading' in options) {
+            if (this.whatIs(options.liveReloading) == 'boolean') {
+                this.#OPS.liveReloading = options.liveReloading;
+            }
         }
         if (options.port) {
             this.#OPS.port = options.port;
@@ -78,6 +96,8 @@ class NodeSimpleServer {
                 this.#OPS.root += Path.sep;
             }
         }
+
+        this.#OPS.hostAddress = `${this.#OPS.hostAddress}:${this.#OPS.port}`;
         this.#loadHandlers();
     }
 
@@ -308,8 +328,12 @@ class NodeSimpleServer {
 
         const dirListingSrc = Path.join(APP_ROOT, 'handlers', 'dir-listing.html');
         const forbiddenSrc = Path.join(APP_ROOT, 'handlers', 'forbidden.html');
-        const liveReloadingSrc = Path.join(APP_ROOT, 'handlers', 'live-reloading.html');
         const notFoundSrc = Path.join(APP_ROOT, 'handlers', 'not-found.html');
+
+        let liveReloadingSrc = Path.join(APP_ROOT, 'handlers', 'live-reloading.html');
+        if (!this.#OPS.liveReloading) {
+            liveReloadingSrc = Path.join(APP_ROOT, 'handlers', 'websocket-only.html');
+        }
 
         let dirListingContent = '';
         try {
@@ -325,6 +349,8 @@ class NodeSimpleServer {
         try {
             liveReloadingContent = Fs.readFileSync(liveReloadingSrc, { encoding: 'utf-8', flag: 'r' });
         } catch (_) { liveReloadingContent = '<!-- 500 Internal Server Error -->'; }
+
+        liveReloadingContent = liveReloadingContent.replace('{{HOST_ADDRESS}}', this.#OPS.hostAddress);
 
         let notFoundContent = '';
         try {
@@ -752,8 +778,15 @@ class NodeSimpleServer {
 
         // Handle future incoming WebSocket messages from this page.
         socket.on('message', (message) => {
-            // NSS messages have a standard format
+            // NSS messages have a standard format.
             const msgObj = JSON.parse(message.toString());
+            // If message is a ping send pong and stop.
+            if (msgObj.type === 'string') {
+                if (msgObj.message === 'ping') {
+                    this.message(pageId, 'pong');
+                    return;
+                }
+            }
             // See if the message belongs to a callback and send it there.
             for (let i = 0; i < this.#OPS.callbacks.length; i++) {
                 const regex = this.#OPS.callbacks[i][0];
