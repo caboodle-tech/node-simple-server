@@ -1,3 +1,4 @@
+import ProdWebsiteDemo from './controllers/prod-website.js';
 import WebsiteDemo from './controllers/website.js';
 import WebsocketDemo from './controllers/websocket.js';
 
@@ -8,6 +9,9 @@ if (process.argv.length > 2) {
 }
 
 switch (runDemo) {
+    case 'production':
+        ProdWebsiteDemo();
+        break;
     case 'websocket':
         WebsocketDemo();
         break;
