@@ -67,12 +67,12 @@ class NodeSimpleServer {
             this.#OPS.contentType = options.contentType;
         }
         if ('dirListing' in options) {
-            if (this.whatIs(options.dirListing) == 'boolean') {
+            if (this.whatIs(options.dirListing) === 'boolean') {
                 this.#OPS.dirListing = options.dirListing;
             }
         }
         if ('disableAutoRestart' in options) {
-            if (this.whatIs(options.disableAutoRestart) == 'boolean') {
+            if (this.whatIs(options.disableAutoRestart) === 'boolean') {
                 this.#OPS.disableAutoRestart = options.disableAutoRestart;
             }
         }
@@ -83,7 +83,7 @@ class NodeSimpleServer {
             this.#OPS.index = options.index;
         }
         if ('liveReloading' in options) {
-            if (this.whatIs(options.liveReloading) == 'boolean') {
+            if (this.whatIs(options.liveReloading) === 'boolean') {
                 this.#OPS.liveReloading = options.liveReloading;
             }
         }
@@ -853,6 +853,7 @@ class NodeSimpleServer {
         // Create the HTTP server.
         this.#server = Http.createServer(this.#serverListener.bind(this));
         // Capture connection upgrade requests so we don't break WebSocket connections.
+        // eslint-disable-next-line no-unused-vars
         this.#server.on('upgrade', (request, socket) => {
             /*
              * Node's http server is capable of handling websocket but you have to manually
