@@ -43,7 +43,7 @@ class NodeSimpleServer {
         map: {}
     };
 
-    #VERSION = '3.0.1';
+    #VERSION = '4.0.0';
 
     #watching = [];
 
@@ -1018,23 +1018,46 @@ class NodeSimpleServer {
             // Start watching the path(s).
             const watcher = Chokidar.watch(paths, options);
             this.#watching.push(watcher);
+            // Prepare to modify some of the standard Chokidar listeners.
+            const alterAddUpdates = ['add', 'addDir', 'change'];
+            const alterCatachAlls = ['all', 'raw'];
+            const alterUnlinks = ['unlink', 'unlinkDir'];
             // Hookup requested listeners; they are case sensitive so type them right in your code!
-            const safe = ['all', 'add', 'addDir', 'change', 'unlink', 'unlinkDir', 'ready', 'raw', 'error'];
             Object.keys(options.events).forEach((key) => {
-                if (safe.includes(key)) {
-                    /**
-                     * NON-STANDARD ALTERATION
-                     *
-                     * Chokidar provides paths in the correct OS format but NSS will change
-                     * all backslashes (\) into forward slashes (/).
-                     */
-                    watcher.on(key, (evt, path) => {
+                /**
+                 * NON-STANDARD ALTERATIONS!
+                 *
+                 * Chokidar provides paths in the correct OS format but NSS will change
+                 * all backslashes (\) into forward slashes (/).
+                 */
+                if (alterCatachAlls.includes(key)) {
+                    watcher.on(key, (evt, path, statsOrDetails) => {
+                        // Capture the call and alter the path before passing it on.
+                        const altPath = path.replace(/\\/g, '/');
+                        // Since we're messing with the path already grab the extension for the user.
+                        // eslint-disable-next-line no-param-reassign
+                        statsOrDetails.ext = Path.extname(altPath).replace('.', '');
+                        options.events[key](evt, altPath, statsOrDetails);
+                    });
+                } else if (alterAddUpdates.includes(key)) {
+                    watcher.on(key, (path, statsOrDetails) => {
+                        // Capture the call and alter the path before passing it on.
+                        const altPath = path.replace(/\\/g, '/');
+                        // Since we're messing with the path already grab the extension for the user.
+                        // eslint-disable-next-line no-param-reassign
+                        statsOrDetails.ext = Path.extname(altPath).replace('.', '');
+                        options.events[key](altPath, statsOrDetails);
+                    });
+                } else if (alterUnlinks.includes(key)) {
+                    watcher.on(key, (path) => {
                         // Capture the call and alter the path before passing it on.
                         const altPath = path.replace(/\\/g, '/');
                         // Since we're messing with the path already grab the extension for the user.
                         const ext = Path.extname(altPath);
-                        options.events[key](evt, altPath, ext.replace('.', ''));
+                        options.events[key](altPath, ext.replace('.', ''));
                     });
+                } else {
+                    watcher.on(key, options.events[key]);
                 }
             });
         } catch (error) {

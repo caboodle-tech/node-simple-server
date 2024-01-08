@@ -308,7 +308,7 @@ With your new instance of NSS you can call any of the following public methods:
 
 ## Changelog
 
-The [current changelog is here](./changelogs/v3.md). All [other changelogs are here](./changelogs).
+The [current changelog is here](./changelogs/v4.md). All [other changelogs are here](./changelogs).
 
 ## Contributions
 
