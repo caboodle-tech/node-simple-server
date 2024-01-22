@@ -87,7 +87,7 @@ function watcherCallback(event, path, extension) {
         /**
          * NOTE: This is a heavy request to use if your site loads resources from
          * other sites such as images, databases, or API calls. Consider a better
-         * approach in this cases such as throttling.
+         * approach in these cases such as throttling.
          */
         Server.reloadAllPages();
         return;
