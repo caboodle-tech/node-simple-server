@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 
 import ContentTypes from '../handlers/js/content-types.js';
 import HTTPStatus from '../handlers/js/http-status.js';
+import Print from './print.js';
 
 // eslint-disable-next-line no-underscore-dangle
 const __filename = fileURLToPath(import.meta.url);
@@ -43,7 +44,7 @@ class NodeSimpleServer {
         map: {}
     };
 
-    #VERSION = '4.1.0';
+    #VERSION = '4.1.1';
 
     #watching = [];
 
@@ -797,7 +798,7 @@ class NodeSimpleServer {
                 }
             }
             // No one is listening for this message.
-            console.log(`Unanswered WebSocket message from ${cleanURL}: ${message.toString()}`);
+            Print.warn(`Unanswered WebSocket message from ${cleanURL}: ${message.toString()}`);
         });
 
         // When a connection closes remove it from CONNECTIONS.
@@ -842,7 +843,7 @@ class NodeSimpleServer {
 
         // Don't start an already running server.
         if (this.#OPS.running) {
-            console.log('Server is already running.');
+            Print.warn('Server is already running.');
             // Notify the callback.
             if (callback) {
                 callback(true);
@@ -878,7 +879,8 @@ class NodeSimpleServer {
                 if (port) {
                     // Stop trying new ports after 100 attempts.
                     if (this.#OPS.port - port > 100) {
-                        console.log(`FATAL ERROR: Could not find an available port number in the range of ${this.#OPS.port}–${this.#OPS.port + 100}.`);
+                        // eslint-disable-next-line max-len
+                        Print.error(`FATAL ERROR: Could not find an available port number in the range of ${this.#OPS.port}–${this.#OPS.port + 100}.`);
                         // Notify the callback.
                         if (callback) {
                             callback(false);
@@ -891,7 +893,7 @@ class NodeSimpleServer {
                 }
                 return;
             }
-            console.log('Server error', error);
+            Print.error(`Server Error:\n${error}`);
         });
 
         // Attempt to start the server now.
@@ -907,19 +909,19 @@ class NodeSimpleServer {
 
             // Warn the user if we had to change port numbers.
             if (port && (port !== this.#OPS.port)) {
-                console.log(`Port ${this.#OPS.port} was in use, switched to using ${port}.\n`);
+                Print.warn(`Port ${this.#OPS.port} was in use, switched to using ${port}.\n`);
             }
 
             // Record port in use.
             this.#OPS.portInUse = port;
 
             // Log the ip addresses being watched.
-            console.log('Node Simple Server live @:');
+            Print.notice('Node Simple Server live @:');
             const addresses = this.getAddresses(port);
             addresses.forEach((address) => {
-                console.log(`    ${address}`);
+                Print.notice(`    ${address}`);
             });
-            console.log('');
+            Print.log('');
 
             // Notify the callback.
             if (callback) {
@@ -953,7 +955,7 @@ class NodeSimpleServer {
             this.#server = null;
             this.#socket = null;
             this.#OPS.running = false;
-            console.log('Server has been stopped.');
+            Print.notice('Server has been stopped.');
         }
         // Notify the callback.
         if (callback) {
@@ -1031,7 +1033,7 @@ class NodeSimpleServer {
                  * all backslashes (\) into forward slashes (/).
                  */
                 if (alterCatachAlls.includes(key)) {
-                    watcher.on(key, (evt, path, statsOrDetails) => {
+                    watcher.on(key, (evt, path, statsOrDetails = {}) => {
                         // Capture the call and alter the path before passing it on.
                         const altPath = path.replace(/\\/g, '/');
                         // Since we're messing with the path already grab the extension for the user.
@@ -1040,7 +1042,7 @@ class NodeSimpleServer {
                         options.events[key](evt, altPath, statsOrDetails);
                     });
                 } else if (alterAddUpdates.includes(key)) {
-                    watcher.on(key, (path, statsOrDetails) => {
+                    watcher.on(key, (path, statsOrDetails = {}) => {
                         // Capture the call and alter the path before passing it on.
                         const altPath = path.replace(/\\/g, '/');
                         // Since we're messing with the path already grab the extension for the user.
@@ -1061,7 +1063,7 @@ class NodeSimpleServer {
                 }
             });
         } catch (error) {
-            console.log(error);
+            Print.error(error);
             return false;
         }
         return true;
