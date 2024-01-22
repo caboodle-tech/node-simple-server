@@ -146,8 +146,8 @@
             }
 
             // Socket specific variables.
-            const protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-            const address = `${protocol}{{HOST_ADDRESS}}${pathname}/ws?id=${pageId}`;
+            const protocol = window.location.protocol === "http:" ? "ws://" : "wss://";
+            const address = protocol + window.location.host + window.location.pathname + "/ws?id=" + pageId;
             const socket = new WebSocket(address);
 
             // Respond to messages the socket receives.
