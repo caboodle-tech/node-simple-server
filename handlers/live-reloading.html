@@ -91,10 +91,11 @@
             };
 
             /** Send a WebSocket message to the WebSocket server. */
-            const send = (message) => {
+            const send = (message, route = null) => {
                 if (ready && socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({
                         message,
+                        route,
                         type: whatIs(message)
                     }));
                     return;
@@ -147,7 +148,7 @@
 
             // Socket specific variables.
             const protocol = window.location.protocol === "http:" ? "ws://" : "wss://";
-            const address = protocol + window.location.host + window.location.pathname + "/ws?id=" + pageId;
+            const address = protocol + window.location.host + pathname + "/ws?id=" + pageId;
             const socket = new WebSocket(address);
 
             // Respond to messages the socket receives.

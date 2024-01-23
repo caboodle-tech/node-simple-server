@@ -42,15 +42,16 @@
             };
 
             /** Send a WebSocket message to the WebSocket server. */
-            const send = (message) => {
+            const send = (message, route = null) => {
                 if (ready && socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({
                         message,
+                        route,
                         type: whatIs(message)
                     }));
                     return;
                 }
-                console.warn("Node Simple Server: The WebSocket is not ready or the connection was closed.");
+                console.warn('Node Simple Server: The WebSocket is not ready or the connection was closed.');
             };
 
             /** Generate a random unique ID for this page; will be registered in the back-end. */
@@ -90,9 +91,15 @@
             let restartAttempts = 0;
             let restartInterval = null;
 
+            // Prep window path.
+            let pathname = window.location.pathname;
+            if (pathname === '/') {
+                pathname = '';
+            }
+
             // Socket specific variables.
             const protocol = window.location.protocol === "http:" ? "ws://" : "wss://";
-            const address = protocol + window.location.host + window.location.pathname + "/ws?id=" + pageId;
+            const address = protocol + window.location.host + pathname + "/ws?id=" + pageId;
             const socket = new WebSocket(address);
 
             // Respond to messages the socket receives.

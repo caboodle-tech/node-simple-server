@@ -97,7 +97,13 @@ function watcherCallback(event, path, extension) {
     }
 }
 
-// A bare minimum callback to handle all websocket messages from the frontend.
+/**
+ * A bare minimum callback to handle all websocket messages from the frontend. By
+ * default NSS registers and responds to WebSockets by the web pages pathname. In
+ * a web page:
+ * 
+ * NSS_WS.send([string|int|bool|object]) // Pathname lookup will be used.
+ */
 function websocketCallback(messageObject, pageId) {
     // Interpret and do what you need to with the message:
     const datatype = messageObject.type
@@ -107,8 +113,25 @@ function websocketCallback(messageObject, pageId) {
     // Respond to the page that sent the message if you like:
     Server.message(pageId, 'Messaged received!');
 }
-
 Server.addWebsocketCallback('.*', websocketCallback);
+
+/**
+ * A bare minimum callback to handle all websocket messages from the frontend.
+ * This is a special example that registers a specific route to listen for. In a
+ * web page:
+ * 
+ * NSS_WS.send([string|int|bool|object], [route string]) // Route lookup will be used.
+ */
+function websocketCallback(messageObject, pageId) {
+    // Interpret and do what you need to with the message:
+    const datatype = messageObject.type
+    const data = messageObject.data;
+    console.log(`Route received ${datatype} data from page ${pageId}: ${data}`)
+
+    // Respond to the page that sent the message if you like:
+    Server.message(pageId, 'Route specific messaged received!');
+}
+Server.addWebsocketCallback('api/search', websocketCallback);
 
 // A bare minimum watcher options object; use for development, omit for production.
 const watcherOptions = {

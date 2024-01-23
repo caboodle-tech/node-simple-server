@@ -44,7 +44,7 @@ class NodeSimpleServer {
         map: {}
     };
 
-    #VERSION = '4.1.1';
+    #VERSION = '4.2.0';
 
     #watching = [];
 
@@ -731,7 +731,6 @@ class NodeSimpleServer {
      * @param {object} request The incoming initial connection.
      */
     #socketListener(socket, request) {
-
         // Strip the page ID and /ws tag off the url to get the actual url.
         let cleanURL = request.url.substr(1, request.url.indexOf('/ws?id=') - 1);
         if (!cleanURL) {
@@ -750,7 +749,20 @@ class NodeSimpleServer {
         }
 
         // Record the unique page ID directly on the socket object.
-        const pageId = request.url.substr(request.url.indexOf('?id=')).replace('?id=', '');
+        let idStartIndex;
+        if (request.url.indexOf('?id=') !== -1) {
+            idStartIndex = request.url.indexOf('?id=');
+        } else {
+            idStartIndex = -1;
+        }
+
+        let pageId;
+        if (idStartIndex !== -1) {
+            pageId = request.url.substr(idStartIndex).replace('?id=', '');
+        } else {
+            pageId = 'unknown';
+        }
+
         // eslint-disable-next-line no-param-reassign
         socket.nssUid = pageId;
 
@@ -780,7 +792,17 @@ class NodeSimpleServer {
         // Handle future incoming WebSocket messages from this page.
         socket.on('message', (message) => {
             // NSS messages have a standard format.
-            const msgObj = JSON.parse(message.toString());
+            let msgObj;
+            try {
+                msgObj = JSON.parse(message.toString());
+                if (!('message' in msgObj) || !('type' in msgObj)) {
+                    throw new Error('Bad format!');
+                }
+            } catch (e) {
+                Print.warn('Invalid socket message received! Socket message must be in Node Simple Server\'s format.');
+                return;
+            }
+
             // If message is a ping send pong and stop.
             if (msgObj.type === 'string') {
                 if (msgObj.message === 'ping') {
@@ -788,15 +810,30 @@ class NodeSimpleServer {
                     return;
                 }
             }
+
+            // Pull out specific route if there is one.
+            let route = null;
+            if ('route' in msgObj) {
+                route = msgObj.route;
+            }
+
             // See if the message belongs to a callback and send it there.
             for (let i = 0; i < this.#OPS.callbacks.length; i++) {
                 const regex = this.#OPS.callbacks[i][0];
                 const callback = this.#OPS.callbacks[i][1];
-                if (regex.test(cleanURL)) {
+                // If the message has a route check that only.
+                if (route) {
+                    if (regex.test(route)) {
+                        callback(msgObj, pageId);
+                        return;
+                    }
+                } else if (regex.test(cleanURL)) {
+                    // Default to the URL (pathname).
                     callback(msgObj, pageId);
                     return;
                 }
             }
+
             // No one is listening for this message.
             Print.warn(`Unanswered WebSocket message from ${cleanURL}: ${message.toString()}`);
         });
@@ -814,6 +851,7 @@ class NodeSimpleServer {
             }
         });
 
+        console.log(this.#OPS.callbacks);
     }
 
     /**
