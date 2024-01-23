@@ -850,8 +850,6 @@ class NodeSimpleServer {
                 }
             }
         });
-
-        console.log(this.#OPS.callbacks);
     }
 
     /**
