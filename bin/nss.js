@@ -824,7 +824,7 @@ class NodeSimpleServer {
                 // If the message has a route check that only.
                 if (route) {
                     if (regex.test(route)) {
-                        callback(msgObj, pageId);
+                        callback(msgObj, pageId, socket);
                         return;
                     }
                 } else if (regex.test(cleanURL)) {
