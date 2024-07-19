@@ -283,7 +283,7 @@ With your new instance of NSS you can call any of the following public methods:
 
 -   Send a message (`msg`) via WebSocket to the page that matches the `pageId`, or send to a page or pages that match the `pattern`.
 
-### **printListeningAddresses(port, \[returnInstead = false\])**
+### **printListeningAddresses(\[returnInstead = false\])**
 
 -   Prints a message to console with all the addresses the server is available at. If you want full control of the printing you can set `returnInstead` to `true`.
 

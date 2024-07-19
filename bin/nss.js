@@ -44,7 +44,7 @@ class NodeSimpleServer {
         map: {}
     };
 
-    #VERSION = '4.2.3';
+    #VERSION = '4.2.4';
 
     #watching = [];
 
@@ -377,16 +377,16 @@ class NodeSimpleServer {
      * Print the addresses the server is listening on to the console; this is useful for users who
      * are not sure what address to use to access the server.
      *
-     * @param {int} port The port number being listened on.
      * @param {boolean} [returnInstead=false] If true the function will return the message string instead.
      */
     // eslint-disable-next-line consistent-return
-    printListeningAddresses(port, returnInstead = false) {
+    printListeningAddresses(returnInstead = false) {
         let message = 'Node Simple Server live @:\n';
-        const addresses = this.getAddresses(port);
+        const addresses = this.getAddresses(this.#OPS.port);
         addresses.forEach((address) => {
-            message += `    ${address}`;
+            message += `    ${address}\n`;
         });
+        message += '\n';
 
         if (returnInstead) {
             return message;
