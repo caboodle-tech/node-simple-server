@@ -44,7 +44,7 @@ class NodeSimpleServer {
         map: {}
     };
 
-    #VERSION = '4.2.1';
+    #VERSION = '4.2.3';
 
     #watching = [];
 
@@ -371,6 +371,27 @@ class NodeSimpleServer {
             liveReloading: liveReloadingContent,
             notFound: notFoundContent
         };
+    }
+
+    /**
+     * Print the addresses the server is listening on to the console; this is useful for users who
+     * are not sure what address to use to access the server.
+     *
+     * @param {int} port The port number being listened on.
+     * @param {boolean} [returnInstead=false] If true the function will return the message string instead.
+     */
+    // eslint-disable-next-line consistent-return
+    printListeningAddresses(port, returnInstead = false) {
+        let message = 'Node Simple Server live @:\n';
+        const addresses = this.getAddresses(port);
+        addresses.forEach((address) => {
+            message += `    ${address}`;
+        });
+
+        if (returnInstead) {
+            return message;
+        }
+        Print.notice(message);
     }
 
     /**
@@ -859,9 +880,11 @@ class NodeSimpleServer {
      *                        this, it's meant to be used internally to NSS.
      * @param {function} [callback] Optional function to call when the server successfully starts
      *                              (true) or gives up on trying to start (false);
+     * @param {boolean} [printAddresses=true] If true the server will print out all the
+     *                                                 addresses it is listening on.
      * @return {void} Used only as a short circuit.
      */
-    start(port, callback) {
+    start(port, callback, printAddresses = true) {
 
         // Port is usually internal to NSS so check if a user placed the callback first.
         if (port && typeof port === 'function') {
@@ -952,12 +975,9 @@ class NodeSimpleServer {
             this.#OPS.portInUse = port;
 
             // Log the ip addresses being watched.
-            Print.notice('Node Simple Server live @:');
-            const addresses = this.getAddresses(port);
-            addresses.forEach((address) => {
-                Print.notice(`    ${address}`);
-            });
-            Print.log('');
+            if (printAddresses) {
+                this.printListeningAddresses(port);
+            }
 
             // Notify the callback.
             if (callback) {

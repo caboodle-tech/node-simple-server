@@ -283,6 +283,10 @@ With your new instance of NSS you can call any of the following public methods:
 
 -   Send a message (`msg`) via WebSocket to the page that matches the `pageId`, or send to a page or pages that match the `pattern`.
 
+### **printListeningAddresses(port, \[returnInstead = false\])**
+
+-   Prints a message to console with all the addresses the server is available at. If you want full control of the printing you can set `returnInstead` to `true`.
+
 #### **reloadPages()**
 
 -   Sends the reload signal to all active pages.
@@ -303,9 +307,9 @@ With your new instance of NSS you can call any of the following public methods:
 
 -   Unregister (stop messaging) a `callback` function that was initially registered with the `pattern`.
 
-#### **start(\[callback\]) | start(\[port\], \[callback\])**
+#### **start(\[callback\]) | start(\[port\], \[callback\], [printAddresses=true])**
 
--   Starts the HTTP and WebSocket servers and notifies `callback` if present. `Port` is meant to be an internal option for NSS only but you may specify a port number for NSS to use if you have strict requirements in your environment. NOTE: This is a blocking process and will keep any application that ran it alive until stopped gracefully or forcefully terminated. If you do not want this behavior for any reason you will need to call this in its own process.
+-   Starts the HTTP and WebSocket servers and notifies `callback` if present. `Port` is meant to be an internal option for NSS only but you may specify a port number for NSS to use if you have strict requirements in your environment. NOTE: This is a blocking process and will keep any application that ran it alive until stopped gracefully or forcefully terminated. If you do not want this behavior for any reason you will need to call this in its own process. Set `printAddresses` to `false` if you want to hide or print the server address on your own.
 
 #### **stop(\[callback\])**
 
