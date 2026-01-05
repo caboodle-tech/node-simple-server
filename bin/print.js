@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 class Print {
 
     #enabled = true;

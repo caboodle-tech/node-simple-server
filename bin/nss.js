@@ -10,9 +10,8 @@ import ContentTypes from '../handlers/js/content-types.js';
 import HTTPStatus from '../handlers/js/http-status.js';
 import Print from './print.js';
 
-// eslint-disable-next-line no-underscore-dangle
 const __filename = fileURLToPath(import.meta.url);
-// eslint-disable-next-line no-underscore-dangle
+
 const __dirname = Path.dirname(__filename);
 const APP_ROOT = Path.join(__dirname, '../');
 
@@ -44,7 +43,7 @@ class NodeSimpleServer {
         map: {}
     };
 
-    #VERSION = '4.2.4';
+    #VERSION = '4.2.7';
 
     #watching = [];
 
@@ -125,16 +124,23 @@ class NodeSimpleServer {
      * Get an array of all the IP addresses you can reach this server at either from
      * the machine itself or on the LAN.
      *
+     * @param {number} [port] The port number to use in the addresses. If not provided,
+     *                        will use the port currently in use by the server, or the
+     *                        configured port if the server hasn't started yet.
      * @return {Array} An array of loop back ip addresses and LAN addresses to this server.
      */
     getAddresses(port) {
+        // Use provided port, or fall back to portInUse (actual port server is using),
+        // or finally to the configured port
+        // Check for undefined/null specifically to allow 0 if explicitly provided (though unlikely)
+        const actualPort = port !== undefined && port !== null ? port : this.#OPS.portInUse || this.#OPS.port;
         const locals = this.#getLocalAddresses();
         const addresses = [
-            `http://localhost:${port}`,
-            `http://127.0.0.1:${port}`
+            `http://localhost:${actualPort}`,
+            `http://127.0.0.1:${actualPort}`
         ];
         Object.keys(locals).forEach((key) => {
-            addresses.push(`http://${locals[key]}:${port}`);
+            addresses.push(`http://${locals[key]}:${actualPort}`);
         });
         return addresses;
     }
@@ -156,8 +162,8 @@ class NodeSimpleServer {
                 files.push(item);
             }
         });
-        files.sort((a, b) => a.localeCompare(b));
-        dirs.sort((a, b) => a.localeCompare(b));
+        files.sort((a, b) => { return a.localeCompare(b); });
+        dirs.sort((a, b) => { return a.localeCompare(b); });
         // Build the innerHTML for the directory and files unordered list.
         let fileHtml = '';
         let dirHtml = '';
@@ -222,18 +228,11 @@ class NodeSimpleServer {
         let hour = timestamp.getUTCHours();
         let minute = timestamp.getUTCMinutes();
         let second = timestamp.getUTCSeconds();
-        if (dayNum.length < 10) {
-            dayNum = `0${dayNum}`;
-        }
-        if (hour.length < 10) {
-            hour = `0${hour}`;
-        }
-        if (minute.length < 10) {
-            minute = `0${minute}`;
-        }
-        if (second.length < 10) {
-            second = `0${second}`;
-        }
+        // Convert to string and pad with leading zero if needed
+        dayNum = String(dayNum).padStart(2, '0');
+        hour = String(hour).padStart(2, '0');
+        minute = String(minute).padStart(2, '0');
+        second = String(second).padStart(2, '0');
         return `${dayStr}, ${dayNum} ${monStr} ${timestamp.getUTCFullYear()} ${hour}:${minute}:${second} GMT`;
     }
 
@@ -288,7 +287,7 @@ class NodeSimpleServer {
         // Standard headers that should always be set for NSS.
         let mtime = new Date().toUTCString();
         if (settings?.file) {
-            mtime = Fs.statSync(settings.file).mtime;
+            ({ mtime } = Fs.statSync(settings.file));
         }
         const nssHeaders = {
             'Cache-Control': 'public, max-age=0',
@@ -324,7 +323,7 @@ class NodeSimpleServer {
      * like directory listing, page not found, access denied, and so on.
      */
     #loadHandlers() {
-        // eslint-disable-next-line max-len, no-template-curly-in-string
+        // eslint-disable-next-line max-len
         const internalError = '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>500 Internal Server Error</title><style>body,html{margin:0;padding:0}body{padding:15px}</style></head><body><h1>500 Internal Server Error</h1><p>Could not locate source file.</p><hr><p><i>Node Simple Server (NSS) {{version}} Server <script type="text/javascript">document.write(`${document.location.protocol}//${document.location.hostname}`);</script> Port <script type="text/javascript">document.write(document.location.port)</script></i></p>{{liveReloading}}</body></html>';
 
         const dirListingSrc = Path.join(APP_ROOT, 'handlers', 'dir-listing.html');
@@ -377,18 +376,32 @@ class NodeSimpleServer {
      * Print the addresses the server is listening on to the console; this is useful for users who
      * are not sure what address to use to access the server.
      *
+     * @param {number|boolean} [portOrReturn] If a number, the port to use in the addresses.
+     *                                         If a boolean, whether to return the message instead of printing.
      * @param {boolean} [returnInstead=false] If true the function will return the message string instead.
      */
-    // eslint-disable-next-line consistent-return
-    printListeningAddresses(returnInstead = false) {
+
+    printListeningAddresses(portOrReturn, returnInstead = false) {
+        // Handle backward compatibility: if first arg is boolean, it's returnInstead
+        let port;
+        let shouldReturn = returnInstead;
+        if (typeof portOrReturn === 'boolean') {
+            shouldReturn = portOrReturn;
+            port = undefined;
+        } else if (typeof portOrReturn === 'number') {
+            port = portOrReturn;
+        } else {
+            port = undefined;
+        }
+
         let message = 'Node Simple Server live @:\n';
-        const addresses = this.getAddresses(this.#OPS.port);
+        const addresses = this.getAddresses(port);
         addresses.forEach((address) => {
             message += `    ${address}\n`;
         });
         message += '\n';
 
-        if (returnInstead) {
+        if (shouldReturn) {
             return message;
         }
         Print.notice(message);
@@ -408,7 +421,7 @@ class NodeSimpleServer {
             }
             if (pattern[0] === '/' && pattern[pattern.length - 1] === '/') {
                 // eslint-disable-next-line no-param-reassign
-                pattern = pattern.substr(1, pattern.length - 2);
+                pattern = pattern.slice(1, -1);
             }
             return new RegExp(`^${pattern}$`);
         } catch (e) {
@@ -753,7 +766,8 @@ class NodeSimpleServer {
      */
     #socketListener(socket, request) {
         // Strip the page ID and /ws tag off the url to get the actual url.
-        let cleanURL = request.url.substr(1, request.url.indexOf('/ws?id=') - 1);
+        const wsIndex = request.url.indexOf('/ws?id=');
+        let cleanURL = wsIndex > 0 ? request.url.slice(1, wsIndex) : '';
         if (!cleanURL) {
             cleanURL = this.#OPS.indexPage;
         }
@@ -779,17 +793,16 @@ class NodeSimpleServer {
 
         let pageId;
         if (idStartIndex !== -1) {
-            pageId = request.url.substr(idStartIndex).replace('?id=', '');
+            pageId = request.url.slice(idStartIndex).replace('?id=', '');
         } else {
             pageId = 'unknown';
         }
 
-        // eslint-disable-next-line no-param-reassign
         socket.nssUid = pageId;
 
         // Overwrite the default send method to NSS's standard.
         const originalSend = socket.send.bind(socket);
-        // eslint-disable-next-line no-param-reassign
+
         socket.send = (message) => {
             originalSend(JSON.stringify({
                 message,
@@ -835,7 +848,7 @@ class NodeSimpleServer {
             // Pull out specific route if there is one.
             let route = null;
             if ('route' in msgObj) {
-                route = msgObj.route;
+                ({ route } = msgObj);
             }
 
             // See if the message belongs to a callback and send it there.
@@ -927,7 +940,7 @@ class NodeSimpleServer {
              * requests so they get passed on to the this.#socket.connection listener.
              */
             if (request.headers.upgrade === 'websocket') {
-                // eslint-disable-next-line no-useless-return
+
                 return;
             }
         });
@@ -997,12 +1010,14 @@ class NodeSimpleServer {
             // If any back-end files are being watched for changes stop monitoring them.
             this.watchEnd();
             // Close all socket connections; these would force the server to stay up.
-            const keys = Object.keys(this.#sockets);
+            const keys = Object.keys(this.#sockets.routes);
             keys.forEach((key) => {
-                this.#sockets.routes[key].forEach((socket) => {
-                    socket.send('close');
-                    socket.close();
-                });
+                if (this.#sockets.routes[key]) {
+                    this.#sockets.routes[key].forEach((socket) => {
+                        socket.send('close');
+                        socket.close();
+                    });
+                }
             });
             // Now gracefully close SERVER and SOCKET.
             this.#server.close();
@@ -1064,7 +1079,7 @@ class NodeSimpleServer {
          * directory to NSS's root if the setting is missing.
          */
         if (!options.cwd) {
-            // eslint-disable-next-line no-param-reassign
+
             options.cwd = this.#OPS.root;
         }
         // Convert paths to array if it's not already.
@@ -1078,7 +1093,7 @@ class NodeSimpleServer {
             this.#watching.push(watcher);
             // Prepare to modify some of the standard Chokidar listeners.
             const alterAddUpdates = ['add', 'addDir', 'change'];
-            const alterCatachAlls = ['all', 'raw'];
+            const alterCatchAlls = ['all', 'raw'];
             const alterUnlinks = ['unlink', 'unlinkDir'];
             // Hookup requested listeners; they are case sensitive so type them right in your code!
             Object.keys(options.events).forEach((key) => {
@@ -1088,12 +1103,12 @@ class NodeSimpleServer {
                  * Chokidar provides paths in the correct OS format but NSS will change
                  * all backslashes (\) into forward slashes (/).
                  */
-                if (alterCatachAlls.includes(key)) {
+                if (alterCatchAlls.includes(key)) {
                     watcher.on(key, (evt, path, statsOrDetails = {}) => {
                         // Capture the call and alter the path before passing it on.
                         const altPath = path.replace(/\\/g, '/');
                         // Since we're messing with the path already grab the extension for the user.
-                        // eslint-disable-next-line no-param-reassign
+
                         statsOrDetails.ext = Path.extname(altPath).replace('.', '');
                         options.events[key](evt, altPath, statsOrDetails);
                     });
@@ -1102,7 +1117,7 @@ class NodeSimpleServer {
                         // Capture the call and alter the path before passing it on.
                         const altPath = path.replace(/\\/g, '/');
                         // Since we're messing with the path already grab the extension for the user.
-                        // eslint-disable-next-line no-param-reassign
+
                         statsOrDetails.ext = Path.extname(altPath).replace('.', '');
                         options.events[key](altPath, statsOrDetails);
                     });
@@ -1145,7 +1160,7 @@ class NodeSimpleServer {
      */
     whatIs(unknown) {
         try {
-            return ({}).toString.call(unknown).match(/\s([^\]]+)/)[1].toLowerCase();
+            return {}.toString.call(unknown).match(/\s([^\]]+)/)[1].toLowerCase();
         } catch (e) { return undefined; }
     }
 

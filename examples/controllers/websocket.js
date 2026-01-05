@@ -77,6 +77,9 @@ const WebsocketDemo = () => {
     // Register our websocket handler to respond to only index pages.
     server.addWebsocketCallback('index.html', websocketHandler);
 
+    // Log the server's address so we can access it.
+    server.printListeningAddresses();
+
     // NOTE: We could add as many callbacks as we like for different pages or patterns.
 };
 

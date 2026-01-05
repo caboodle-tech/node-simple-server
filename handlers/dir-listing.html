@@ -2,8 +2,8 @@
 <html>
     <head>
         <!-- This is NSS's directory listing page. -->
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset="UTF-8">
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <title>Directory Listing</title>
         <style>
             html,
@@ -90,7 +90,7 @@
             <div class="col">
                 <h1>
                     Listing
-                    <script type="text/javascript">
+                    <script>
                         document.write(document.location.pathname);
                     </script>
                 </h1>
@@ -98,8 +98,8 @@
         </div>
         <div class="row content">
             <div class="col">
-                <svg class="icon" width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd">
-                    <path d="M22 24h-20v-24h14l6 6v18zm-7-23h-12v22h18v-16h-6v-6zm3 15v1h-12v-1h12zm0-3v1h-12v-1h12zm0-3v1h-12v-1h12zm-2-4h4.586l-4.586-4.586v4.586z" />
+                <svg class="icon" clip-rule="evenodd" fill-rule="evenodd" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 24h-20v-24h14l6 6v18zm-7-23h-12v22h18v-16h-6v-6zm3 15v1h-12v-1h12zm0-3v1h-12v-1h12zm0-3v1h-12v-1h12zm-2-4h4.586l-4.586-4.586v4.586z"/>
                 </svg>
                 <span class="title">Files</span>
                 <ul>
@@ -107,8 +107,8 @@
                 </ul>
             </div>
             <div class="col">
-                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                    <path d="M6.083 4c1.38 1.612 2.578 3 4.917 3h11v13h-20v-16h4.083zm.917-2h-7v20h24v-17h-13c-1.629 0-2.305-1.058-4-3z" />
+                <svg class="icon" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6.083 4c1.38 1.612 2.578 3 4.917 3h11v13h-20v-16h4.083zm.917-2h-7v20h24v-17h-13c-1.629 0-2.305-1.058-4-3z"/>
                 </svg>
                 <span class="title">Directories</span>
                 <ul>
@@ -121,11 +121,11 @@
                 <p>
                     <i>
                         Node Simple Server (NSS) {{version}} Server
-                        <script type="text/javascript">
+                        <script>
                             document.write(`${document.location.protocol}//${document.location.hostname}`);
                         </script>
                         Port
-                        <script type="text/javascript">
+                        <script>
                             document.write(document.location.port);
                         </script>
                     </i>

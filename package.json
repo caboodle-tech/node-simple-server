@@ -1,6 +1,6 @@
 {
     "name": "@caboodle-tech/node-simple-server",
-    "version": "4.2.4",
+    "version": "4.2.7",
     "description": "Node Simple Server (NSS): A small but effective node based server for development sites, customizable live reloading, and websocket support built-in.",
     "main": "bin/nss.js",
     "scripts": {
@@ -36,13 +36,18 @@
         "url": "https://github.com/caboodle-tech/node-simple-server/issues"
     },
     "homepage": "https://github.com/caboodle-tech/node-simple-server#readme",
+    "engines": {
+        "node": ">=14.0.0"
+    },
     "dependencies": {
-        "chokidar": "^3.5.3",
-        "ws": "^8.13.0"
+        "chokidar": "^5.0.0",
+        "ws": "^8.19.0"
     },
     "devDependencies": {
-        "eslint": "^8.2.0",
-        "eslint-config-airbnb-base": "^15.0.0",
-        "eslint-plugin-import": "^2.25.2"
+        "@html-eslint/eslint-plugin": "^0.32.0",
+        "@html-eslint/parser": "^0.32.0",
+        "eslint": "^9.39.2",
+        "eslint-plugin-jsonc": "^2.21.0",
+        "jsonc-eslint-parser": "^2.4.2"
     }
 }

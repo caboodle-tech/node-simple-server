@@ -2,8 +2,8 @@
 <html>
     <head>
         <!-- This is NSS's 404 page. -->
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta charset="UTF-8">
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <title>404 Not Found</title>
         <style>
             html,
@@ -20,7 +20,7 @@
         <h1>404 Not Found</h1>
         <p>
             The requested URL
-            <script type="text/javascript">
+            <script>
                 document.write(document.location.pathname);
             </script>
             was not found on this server.
@@ -29,11 +29,11 @@
         <p>
             <i>
                 Node Simple Server (NSS) {{version}} Server
-                <script type="text/javascript">
+                <script>
                     document.write(`${document.location.protocol}//${document.location.hostname}`);
                 </script>
                 Port
-                <script type="text/javascript">
+                <script>
                     document.write(document.location.port);
                 </script>
             </i>

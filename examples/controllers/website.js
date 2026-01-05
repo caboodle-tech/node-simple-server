@@ -55,6 +55,9 @@ const WebsiteDemo = () => {
      * setting up `watch`.
      */
     server.watch(websiteRoot, watcherOptions);
+
+    // Log the server's address so we can access it.
+    server.printListeningAddresses();
 };
 
 export default WebsiteDemo;

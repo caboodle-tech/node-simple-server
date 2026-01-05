@@ -16,6 +16,24 @@ A small but effective node based server for development sites, customizable live
 
 ## Installation
 
+### Locally:
+
+Like any other Node based application you can install NSS automatically with `pnpm` or `npm` and then reference it in your code. This is the recommended way to install and use NSS.
+
+```bash
+# Install using pnpm:
+pnpm add @caboodle-tech/node-simple-server
+
+# Or install using npm:
+npm install @caboodle-tech/node-simple-server
+```
+
+Then use in your code with:
+
+```javascript
+import NodeSimpleServer from '@caboodle-tech/node-simple-server';
+```
+
 ### Manually:
 
 Node Simple Server (NSS) can be manually incorporated into your development process/ application. Extract the `nss` folder from the [latest release](https://github.com/caboodle-tech/node-simple-server/releases/) and then `import` the server module into your code, similar to:
@@ -24,27 +42,15 @@ Node Simple Server (NSS) can be manually incorporated into your development proc
 import NodeSimpleServer from './nss.js';
 ```
 
-### Locally:
-
-You can install and use NSS locally in a project with:
-
-```bash
-# As a normal dependency:
-npm install @caboodle-tech/node-simple-server
-
-# or as a development dependency:
-npm install @caboodle-tech/node-simple-server --save-dev
-```
-
-Depending on how you use and incorporate NSS into your project will determine the best dependency strategy to use.
-
 ### Globally:
 
 You can install and use NSS globally with:
 
 ```bash
-npm install --global @caboodle-tech/node-simple-server
+pnpm install -g @caboodle-tech/node-simple-server
 ```
+
+Depending on how you use and incorporate NSS into your project will determine the best dependency strategy to use.
 
 ## Usage
 
@@ -78,7 +84,8 @@ const serverOptions = {
 const Server = new NodeSimpleServer(serverOptions);
 
 // A bare minimum callback to handle most development changes.
-function watcherCallback(event, path, extension) {
+function watcherCallback(event, path, statsOrDetails) {
+    const extension = statsOrDetails.ext;
     if (extension === 'css') {
         Server.reloadAllStyles();
         return;
