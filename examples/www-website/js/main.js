@@ -1,5 +1,4 @@
-function loadFoxImage() {
-
+const loadFoxImage = () => {
     const container = document.getElementById('fox-container');
     if (!container) {
         console.log('DEMO: Could not locate the image container for the fox image.');
@@ -23,7 +22,7 @@ function loadFoxImage() {
         .catch((_) => {
             console.log('DEMO: There was an error trying to load the fox image.');
         });
-}
+};
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DEMO: Loading a random image of a fox in 3 seconds...');

@@ -83,8 +83,11 @@ const serverOptions = {
 // Get a new instance of NSS.
 const Server = new NodeSimpleServer(serverOptions);
 
-// A bare minimum callback to handle most development changes.
-function watcherCallback(event, path, statsOrDetails) {
+/**
+ * A bare minimum callback to handle most development changes. You register only for
+ * the events you need; unhandled events (e.g. unlink/unlinkDir if not listed) are ignored.
+ */
+const watcherCallback = (event, path, statsOrDetails) => {
     const extension = statsOrDetails.ext;
     if (extension === 'css') {
         Server.reloadAllStyles();
@@ -102,7 +105,11 @@ function watcherCallback(event, path, statsOrDetails) {
     if (event === 'change') {
         Server.reloadSinglePage(path);
     }
-}
+    // When a file or directory is removed, reload so the browser does not show stale content.
+    if (event === 'unlink' || event === 'unlinkDir') {
+        Server.reloadAllPages();
+    }
+};
 
 /**
  * A bare minimum callback to handle all websocket messages from the frontend. By
@@ -111,15 +118,12 @@ function watcherCallback(event, path, statsOrDetails) {
  * 
  * NSS_WS.send([string|int|bool|object]) // Pathname lookup will be used.
  */
-function websocketCallback(messageObject, pageId) {
-    // Interpret and do what you need to with the message:
-    const datatype = messageObject.type
+const websocketCallback = (messageObject, pageId) => {
+    const datatype = messageObject.type;
     const data = messageObject.data;
-    console.log(`Received ${datatype} data from page ${pageId}: ${data}`)
-
-    // Respond to the page that sent the message if you like:
-    Server.message(pageId, 'Messaged received!');
-}
+    console.log(`Received ${datatype} data from page ${pageId}: ${data}`);
+    Server.message(pageId, 'Message received!');
+};
 Server.addWebsocketCallback('.*', websocketCallback);
 
 /**
@@ -129,21 +133,21 @@ Server.addWebsocketCallback('.*', websocketCallback);
  * 
  * NSS_WS.send([string|int|bool|object], [route string]) // Route lookup will be used.
  */
-function websocketCallback(messageObject, pageId) {
-    // Interpret and do what you need to with the message:
-    const datatype = messageObject.type
+const websocketCallbackRoute = (messageObject, pageId) => {
+    const datatype = messageObject.type;
     const data = messageObject.data;
-    console.log(`Route received ${datatype} data from page ${pageId}: ${data}`)
+    console.log(`Route received ${datatype} data from page ${pageId}: ${data}`);
+    Server.message(pageId, 'Route specific message received!');
+};
+Server.addWebsocketCallback('api/search', websocketCallbackRoute);
 
-    // Respond to the page that sent the message if you like:
-    Server.message(pageId, 'Route specific messaged received!');
-}
-Server.addWebsocketCallback('api/search', websocketCallback);
-
-// A bare minimum watcher options object; use for development, omit for production.
+/**
+ * Watcher options: the events you register are your intent. Only registered events
+ * are handled; others (e.g. unlink, unlinkDir) are ignored unless you add them.
+ */
 const watcherOptions = {
     events: {
-        all: watcherCallback, // Just send everything to a single function.
+        all: watcherCallback,
     },
 };
 
@@ -154,7 +158,7 @@ Server.start();
 Server.watch(websiteRoot, watcherOptions);
 ```
 
-The `options` object **required** by the `watch` method must include an `events` property with at least one watched event. The demo code above used `all` to capture any event. This object takes a lot of settings and is explained below in the **Watch Options** table.
+The `options` object **required** by the `watch` method must include an `events` property with at least one watched event. The demo code above used `all` to capture any event. You express intent by which events you register: only those are handled; others are ignored. If your app has a build step (e.g. source → output), register for `unlink` and `unlinkDir` in `events` to react when files or directories are removed (e.g. to keep your output in sync). This object takes a lot of settings and is explained below in the **Watch Options** table.
 
 NSS uses `process.cwd()` as the live servers root if omitted and is pre-configured with several additional default settings. You can change these by providing your own `options` object when instantiating the server. How this looks in code is shown below, the following table **Server Options** explains all available options.
 
@@ -210,7 +214,7 @@ const Server = new NodeSimpleServer(options);
 
 #### **events**
 
--   Set to an object that can have any combination of these properties: `all`, `add`, `addDir`, `change`, `unlink`, `unlinkDir`, `ready`, `raw`, `error`. Any property set on `events` should point to a callback function that will handle that event.
+-   Set to an object that can have any combination of these properties: `all`, `add`, `addDir`, `change`, `unlink`, `unlinkDir`, `ready`, `raw`, `error`. Any property set on `events` should point to a callback function that will handle that event. Only the events you register are handled; others are ignored. Use `unlink` and `unlinkDir` when you need to react to file or directory deletion (e.g. to sync your build output or trigger a reload).
 
 #### **persistent** &nbsp;&nbsp;&nbsp;default: true
 

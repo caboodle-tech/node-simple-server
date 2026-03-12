@@ -43,7 +43,7 @@ class NodeSimpleServer {
         map: {}
     };
 
-    #VERSION = '4.2.7';
+    #VERSION = '4.2.8';
 
     #watching = [];
 
@@ -130,9 +130,11 @@ class NodeSimpleServer {
      * @return {Array} An array of loop back ip addresses and LAN addresses to this server.
      */
     getAddresses(port) {
-        // Use provided port, or fall back to portInUse (actual port server is using),
-        // or finally to the configured port
-        // Check for undefined/null specifically to allow 0 if explicitly provided (though unlikely)
+        /*
+         * Use provided port, or fall back to portInUse (actual port server is using),
+         * or finally to the configured port. Check for undefined/null specifically to
+         * allow 0 if explicitly provided (though unlikely).
+         */
         const actualPort = port !== undefined && port !== null ? port : this.#OPS.portInUse || this.#OPS.port;
         const locals = this.#getLocalAddresses();
         const addresses = [
@@ -495,8 +497,8 @@ class NodeSimpleServer {
             pattern = this.makeRegex(pattern);
         }
         // See if the pattern is a page id first.
-        if (this.#sockets.map[original]) {
-            this.#sockets.map[original].send('reload');
+        if (this.#sockets.map[`S${original}`]) {
+            this.#sockets.map[`S${original}`].send('reload');
             return;
         }
         // See if the pattern matches a specific URL and reload all those pages.
@@ -541,8 +543,8 @@ class NodeSimpleServer {
             pattern = this.makeRegex(pattern) || original;
         }
         // See if the pattern is a page id first.
-        if (this.#sockets.map[original]) {
-            this.#sockets.map[original].send('refreshCSS');
+        if (this.#sockets.map[`S${original}`]) {
+            this.#sockets.map[`S${original}`].send('refreshCSS');
             return;
         }
         // See if the pattern matches a specific URL and reload all those pages.
@@ -682,29 +684,40 @@ class NodeSimpleServer {
             return;
         }
 
-        // Get the file.
-        const file = Fs.readFileSync(systemPath, { encoding: 'binary' });
+        const contentType = ContentTypes[ext] || this.#OPS.contentType;
+        const isText = contentType.startsWith('text/') ||
+            contentType === 'application/json' ||
+            contentType === 'application/ld+json' ||
+            contentType === 'application/manifest+json' ||
+            contentType === 'application/xhtml+xml';
 
-        // Output the file to the browser.
-        resp.writeHead(HTTPStatus.ok, this.#getHeaders({
-            contentType: ContentTypes[ext] || this.#OPS.contentType,
-            file: systemPath
-        }));
+        // Read with no encoding: returns Buffer of raw bytes (Node.js fs docs). Sending that
+        // Buffer preserves the file bytes; do not use 'binary' (alias for latin1) which
+        // misinterprets UTF-8 multi-byte sequences.
+        const file = Fs.readFileSync(systemPath);
 
-        // If needed inject NSS's WebSocket at the end of the page.
+        // Output the file to the browser. Only set charset for text types.
+        const headerSettings = { contentType, file: systemPath };
+        if (isText) {
+            headerSettings.charset = 'utf-8';
+        }
+        resp.writeHead(HTTPStatus.ok, this.#getHeaders(headerSettings));
+
+        // If needed inject NSS's WebSocket at the end of the page, decode to string, modify, re-encode.
         if (this.#reload.includes(ext)) {
-            let html = file.toString();
+            const html = file.toString('utf8');
             const last = html.lastIndexOf('</body>');
+            let body;
             if (last && last > 0) {
                 const start = html.substring(0, last);
                 const end = html.substring(last);
-                html = start + this.#handlers.liveReloading + end;
-                resp.write(html, 'utf-8');
+                body = Buffer.from(start + this.#handlers.liveReloading + end, 'utf8');
             } else {
-                resp.write(file, 'binary');
+                body = Buffer.from(html, 'utf8');
             }
+            resp.write(body);
         } else {
-            resp.write(file, 'binary');
+            resp.write(file);
         }
         resp.end();
     }
@@ -879,7 +892,7 @@ class NodeSimpleServer {
             for (let i = 0; i < connections.length; i++) {
                 if (connections[i].nssUid === pageId) {
                     connections.splice(i, 1);
-                    delete this.#sockets.map[pageId];
+                    delete this.#sockets.map[`S${pageId}`];
                     break;
                 }
             }
@@ -923,9 +936,11 @@ class NodeSimpleServer {
             return;
         }
 
-        // Create the HTTP server.
+        /*
+         * Create the HTTP server. Capture connection upgrade requests so we don't
+         * break WebSocket connections.
+         */
         this.#server = Http.createServer(this.#serverListener.bind(this));
-        // Capture connection upgrade requests so we don't break WebSocket connections.
         // eslint-disable-next-line no-unused-vars
         this.#server.on('upgrade', (request, socket) => {
             /*
@@ -944,9 +959,11 @@ class NodeSimpleServer {
                 return;
             }
         });
-        // Capture server errors and respond as needed.
+        /*
+         * Capture server errors and respond as needed. The port we tried to use is
+         * taken, increment and try to start again.
+         */
         this.#server.on('error', (error) => {
-            // The port we tried to use is taken, increment and try to start again.
             if (error.code === 'EADDRINUSE') {
                 if (port) {
                     // Stop trying new ports after 100 attempts.
@@ -968,7 +985,7 @@ class NodeSimpleServer {
             Print.error(`Server Error:\n${error}`);
         });
 
-        // Attempt to start the server now.
+        /* Attempt to start the server now. */
         // eslint-disable-next-line no-param-reassign
         port = port || this.#OPS.port;
         this.#server.listen(port, () => {
@@ -1091,6 +1108,7 @@ class NodeSimpleServer {
             // Start watching the path(s).
             const watcher = Chokidar.watch(paths, options);
             this.#watching.push(watcher);
+
             // Prepare to modify some of the standard Chokidar listeners.
             const alterAddUpdates = ['add', 'addDir', 'change'];
             const alterCatchAlls = ['all', 'raw'];

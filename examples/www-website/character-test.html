@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Test Page</title>
+    <link rel="stylesheet" href="./css/normalize.css">
+    <link rel="stylesheet" href="./css/main.css">
+    <style>
+        .edge-section { margin: 2rem 0; }
+        .edge-section h2 { font-size: 1.8rem; margin-bottom: 0.75rem; border-bottom: 1px solid #ccc; }
+        .edge-section table { border-collapse: collapse; width: 100%; max-width: 640px; }
+        .edge-section th, .edge-section td { border: 1px solid #ccc; padding: 0.5rem 0.75rem; text-align: left; }
+        .edge-section th { background: #f5f5f5; }
+        .rtl-block { direction: rtl; text-align: right; }
+        .ltr-block { direction: ltr; text-align: left; }
+        .mixed-rtl-ltr { unicode-bidi: bidi-override; }
+        .back-link { display: inline-block; margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <div id="page-container">
+        <main>
+            <div class="content">
+                <a class="back-link" href="./index.html">← Back to Website Demo</a>
+                <h1>Character Test Page</h1>
+                <p>
+                    This page tests that the server and browser handle UTF-8 correctly: HTML entities,
+                    emojis, RTL/LTR text, and mixed scripts.
+                </p>
+
+                <section class="edge-section" id="entities">
+                    <h2>HTML Entities (Table)</h2>
+                    <p>Rendered via reference: character from entity, decimal, or hex. Rendered via literal: character typed directly in the source (UTF-8).</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Entity</th>
+                                <th>Decimal</th>
+                                <th>Hex</th>
+                                <th>Via Reference</th>
+                                <th>Via Literal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Ampersand</td>
+                                <td><code>&amp;amp;</code></td>
+                                <td><code>&amp;#38;</code></td>
+                                <td><code>&amp;#x26;</code></td>
+                                <td>&#38;</td>
+                                <td>n/a</td>
+                            </tr>
+                            <tr>
+                                <td>Less than</td>
+                                <td><code>&amp;lt;</code></td>
+                                <td><code>&amp;#60;</code></td>
+                                <td><code>&amp;#x3C;</code></td>
+                                <td>&#60;</td>
+                                <td>n/a</td>
+                            </tr>
+                            <tr>
+                                <td>Greater than</td>
+                                <td><code>&amp;gt;</code></td>
+                                <td><code>&amp;#62;</code></td>
+                                <td><code>&amp;#x3E;</code></td>
+                                <td>&#62;</td>
+                                <td>n/a</td>
+                            </tr>
+                            <tr>
+                                <td>Double quote</td>
+                                <td><code>&amp;quot;</code></td>
+                                <td><code>&amp;#34;</code></td>
+                                <td><code>&amp;#x22;</code></td>
+                                <td>"</td>
+                                <td>"</td>
+                            </tr>
+                            <tr>
+                                <td>Apostrophe</td>
+                                <td><code>&amp;apos;</code></td>
+                                <td><code>&amp;#39;</code></td>
+                                <td><code>&amp;#x27;</code></td>
+                                <td>'</td>
+                                <td>'</td>
+                            </tr>
+                            <tr>
+                                <td>Non-breaking space</td>
+                                <td><code>&amp;nbsp;</code></td>
+                                <td><code>&amp;#160;</code></td>
+                                <td><code>&amp;#xA0;</code></td>
+                                <td>[&#160;]</td>
+                                <td>[&#160;]</td>
+                            </tr>
+                            <tr>
+                                <td>Copyright</td>
+                                <td><code>&amp;copy;</code></td>
+                                <td><code>&amp;#169;</code></td>
+                                <td><code>&amp;#xA9;</code></td>
+                                <td>&#169;</td>
+                                <td>©</td>
+                            </tr>
+                            <tr>
+                                <td>En dash</td>
+                                <td><code>&amp;ndash;</code></td>
+                                <td><code>&amp;#8211;</code></td>
+                                <td><code>&amp;#x2013;</code></td>
+                                <td>&#8211;</td>
+                                <td>–</td>
+                            </tr>
+                            <tr>
+                                <td>Em dash</td>
+                                <td><code>&amp;mdash;</code></td>
+                                <td><code>&amp;#8212;</code></td>
+                                <td><code>&amp;#x2014;</code></td>
+                                <td>&#8212;</td>
+                                <td>—</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="edge-section" id="emojis">
+                    <h2>Emojis &amp; Symbols (Unicode)</h2>
+                    <p>Via reference: numeric character reference (e.g. &#x1F600;). Via literal: character typed in source (UTF-8). Both render as Unicode.</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Unicode</th>
+                                <th>Via Reference</th>
+                                <th>Via Literal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Grinning face</td>
+                                <td><code>U+1F600</code></td>
+                                <td>&#x1F600;</td>
+                                <td>😀</td>
+                            </tr>
+                            <tr>
+                                <td>Party popper</td>
+                                <td><code>U+1F389</code></td>
+                                <td>&#x1F389;</td>
+                                <td>🎉</td>
+                            </tr>
+                            <tr>
+                                <td>Red heart</td>
+                                <td><code>U+2764</code></td>
+                                <td>&#x2764;</td>
+                                <td>❤</td>
+                            </tr>
+                            <tr>
+                                <td>Light bulb</td>
+                                <td><code>U+1F4A1</code></td>
+                                <td>&#x1F4A1;</td>
+                                <td>💡</td>
+                            </tr>
+                            <tr>
+                                <td>Check mark</td>
+                                <td><code>U+2714</code></td>
+                                <td>&#x2714;</td>
+                                <td>✔</td>
+                            </tr>
+                            <tr>
+                                <td>Cross mark</td>
+                                <td><code>U+274C</code></td>
+                                <td>&#x274C;</td>
+                                <td>❌</td>
+                            </tr>
+                            <tr>
+                                <td>Star</td>
+                                <td><code>U+2B50</code></td>
+                                <td>&#x2B50;</td>
+                                <td>⭐</td>
+                            </tr>
+                            <tr>
+                                <td>Flag (United States)</td>
+                                <td><code>U+1F1FA U+1F1F8</code></td>
+                                <td>&#x1F1FA;&#x1F1F8;</td>
+                                <td>🇺🇸</td>
+                            </tr>
+                            <tr>
+                                <td>Flag (United Kingdom)</td>
+                                <td><code>U+1F1EC U+1F1E7</code></td>
+                                <td>&#x1F1EC;&#x1F1E7;</td>
+                                <td>🇬🇧</td>
+                            </tr>
+                            <tr>
+                                <td>Flag (Canada)</td>
+                                <td><code>U+1F1E8 U+1F1E6</code></td>
+                                <td>&#x1F1E8;&#x1F1E6;</td>
+                                <td>🇨🇦</td>
+                            </tr>
+                            <tr>
+                                <td>Flag (Japan)</td>
+                                <td><code>U+1F1EF U+1F1F5</code></td>
+                                <td>&#x1F1EF;&#x1F1F5;</td>
+                                <td>🇯🇵</td>
+                            </tr>
+                            <tr>
+                                <td>Flag (France)</td>
+                                <td><code>U+1F1EB U+1F1F7</code></td>
+                                <td>&#x1F1EB;&#x1F1F7;</td>
+                                <td>🇫🇷</td>
+                            </tr>
+                            <tr>
+                                <td>Flag (Australia)</td>
+                                <td><code>U+1F1E6 U+1F1FA</code></td>
+                                <td>&#x1F1E6;&#x1F1FA;</td>
+                                <td>🇦🇺</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="edge-section" id="arabic">
+                    <h2>Arabic (RTL)</h2>
+                    <p class="rtl-block" dir="rtl" lang="ar">
+                        النص العربي للاختبار. إذا ظهر هذا النص بشكل صحيح ومن اليمين إلى اليسار، فإن الترميز واتجاه النص يعملان بشكل سليم.
+                    </p>
+                    <p><em>Above: Arabic sample. Direction should be right-to-left.</em></p>
+                </section>
+
+                <section class="edge-section" id="mandarin">
+                    <h2>Mandarin / Chinese</h2>
+                    <p class="ltr-block" lang="zh">
+                        这是中文测试。简体字与繁体字：简体 = 简体字，繁体 = 繁體字。如果这些字符显示正确，说明 UTF-8 编码正常。
+                    </p>
+                    <p><em>Above: Mandarin (Simplified and Traditional). Direction LTR.</em></p>
+                </section>
+
+                <section class="edge-section" id="mixed">
+                    <h2>Mixed RTL and LTR</h2>
+                    <p>
+                        English sentence with <span dir="rtl" lang="ar">كلمة عربية</span> in the middle, then more English.
+                    </p>
+                    <p dir="rtl">
+                        جملة عربية <span dir="ltr" lang="en">with English in the middle</span> ثم تكملة عربية.
+                    </p>
+                </section>
+
+                <section class="edge-section" id="raw-unicode">
+                    <h2>Raw Unicode in Page (No Entities)</h2>
+                    <p>Emoji in source: 😀 🎉 中文 العربية</p>
+                </section>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

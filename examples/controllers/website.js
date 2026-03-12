@@ -23,8 +23,7 @@ const WebsiteDemo = () => {
     // Start the server.
     server.start();
 
-    // A bare minimum callback to handle changes.
-    function callback(event, path, ext) {
+    const callback = (event, path, ext) => {
         console.log(event, path, ext);
         if (ext === 'css') {
             server.reloadAllStyles();
@@ -37,7 +36,7 @@ const WebsiteDemo = () => {
         if (event === 'change') {
             server.reloadSinglePage(path);
         }
-    }
+    };
 
     // Build a bare minimum watcher options object.
     const watcherOptions = {
@@ -55,9 +54,6 @@ const WebsiteDemo = () => {
      * setting up `watch`.
      */
     server.watch(websiteRoot, watcherOptions);
-
-    // Log the server's address so we can access it.
-    server.printListeningAddresses();
 };
 
 export default WebsiteDemo;

@@ -1,4 +1,4 @@
-function setupChatApp() {
+const setupChatApp = () => {
     // Make sure the basic elements are present on the page.
     const chatContainer = document.getElementById('chat');
     if (!chatContainer) { return; }
@@ -28,9 +28,11 @@ function setupChatApp() {
         textarea.style.height = `${textarea.scrollHeight}px`;
     });
 
-    // Handle websocket messages from the server.
+    /*
+     * Handle websocket messages from the server. NSS demos only use strings so
+     * check for that.
+     */
     NSS_WS.registerCallback((msgObj) => {
-        // NSS demos only use strings so check for that.
         if (msgObj.type === 'string') {
             // Add the servers response to the chat app.
             const msgDiv = document.createElement('div');
@@ -43,19 +45,19 @@ function setupChatApp() {
 
     // When the submit button (send icon) is pressed send a websocket message.
     button.addEventListener('click', () => {
-        // Send the message.
+        /*
+         * Send the message. Add the message to the chat app.
+         */
         NSS_WS.send(textarea.value.replace(/\n/g, ' '));
-        // Add the message to the chat app.
         const msgDiv = document.createElement('div');
         msgDiv.classList.add('msg');
         msgDiv.classList.add('frontend');
         msgDiv.innerHTML = textarea.value.replace(/\n/g, '<br>');
         msgContainer.appendChild(msgDiv);
-        // Reset the chat message box.
         textarea.value = '';
         textarea.style.height = 'initial';
     });
-}
+};
 
 // Wait until the page is ready and then setup the demo.
 document.addEventListener('DOMContentLoaded', () => {

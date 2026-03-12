@@ -23,8 +23,7 @@ const WebsocketDemo = () => {
     // Start the server.
     server.start();
 
-    // A bare minimum callback to handle changes.
-    function callback(event, path, ext) {
+    const callback = (event, path, ext) => {
         if (ext === 'css') {
             server.reloadAllStyles();
             return;
@@ -36,7 +35,7 @@ const WebsocketDemo = () => {
         if (event === 'change') {
             server.reloadSinglePage(path);
         }
-    }
+    };
 
     // Build a bare minimum watcher options object.
     const watcherOptions = {
@@ -58,27 +57,19 @@ const WebsocketDemo = () => {
     // Keep a reply count so we can distinguish replies.
     const replyCount = {};
 
-    // Build a simple websocket watcher (handler).
-    function websocketHandler(message, pageId) {
-        // Our demo only sends stings so ignore anything else.
+    const websocketHandler = (message, pageId) => {
         if (message.type === 'string') {
-            // We record reply counts by page so make sure we have a record for this page.
             if (!replyCount[pageId]) { replyCount[pageId] = 0; }
-            // Display the users message in the servers (NSS's) terminal.
             console.log(`[websocket:${pageId}] Message from frontend --> ${message.message}`);
-            // To demonstrate we can reply send a message back after a delay.
             setTimeout(() => {
                 replyCount[pageId] += 1;
                 server.message(pageId, `Reply ${replyCount[pageId]} from backend to page with id: ${pageId}`);
             }, 2000);
         }
-    }
+    };
 
     // Register our websocket handler to respond to only index pages.
     server.addWebsocketCallback('index.html', websocketHandler);
-
-    // Log the server's address so we can access it.
-    server.printListeningAddresses();
 
     // NOTE: We could add as many callbacks as we like for different pages or patterns.
 };
